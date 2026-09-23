@@ -73,11 +73,11 @@ Choose between two realistic teachers, each with full emotional range:
 
 <table width="100%">
   <tr>
-    <td width="50%" align="center"><img src="assets/images/sirAbubokkor.png" alt="Sir Abubokkor" width="100%"/></td>
+    <td width="50%" align="center"><img src="assets/images/sirINTELLA.png" alt="Sir INTELLA" width="100%"/></td>
     <td width="50%" align="center"><img src="assets/images/mam.png" alt="Ma'am Queen" width="100%"/></td>
   </tr>
   <tr>
-    <td align="center"><strong>Sir Abubokkor</strong> â€” Male Teacher</td>
+    <td align="center"><strong>Sir INTELLA</strong> â€” Male Teacher</td>
     <td align="center"><strong>Ma'am Queen</strong> â€” Female Teacher</td>
   </tr>
 </table>
@@ -267,7 +267,7 @@ graph TB
 
 ```bash
 # Clone the repository
-git clone https://github.com/abubokkor-cse/INTELLA-AI-Virtual-Teacher.git
+git clone https://github.com/INTELLA-cse/INTELLA-AI-Virtual-Teacher.git
 cd INTELLA-AI-Virtual-Teacher
 
 # Install dependencies
@@ -335,10 +335,10 @@ MIT License â€” see [LICENSE](LICENSE) for details.
 
 ## ðŸ“§ Contact
 
-**Abu Bokkor** â€” Creator & Lead Developer
+**INTELLA Team** â€” Creator & Lead Developer
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/md-abubokkor/)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/abubokkor-cse)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/md-INTELLA/)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/INTELLA-cse)
 
 ---
 
@@ -346,4 +346,5 @@ MIT License â€” see [LICENSE](LICENSE) for details.
   <strong>Built with â¤ï¸ in Bangladesh</strong><br/>
   <em>"Every child deserves a teacher who never gives up on them."</em>
 </p>
+
 

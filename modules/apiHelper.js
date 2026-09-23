@@ -1,215 +1,223 @@
 // API Helper Module - INTELLA
-// Automatically switches between direct API calls (localhost) and serverless (production)
+// Routes AI calls to Claude (brain), Groq TTS/STT (voice), and serverless proxies
 
 const API_MODE = window.location.hostname === 'localhost' ? 'direct' : 'serverless';
 
-// Get API keys from CONFIG (only used in direct mode)
 function getConfig() {
     return window.CONFIG || {};
 }
 
-// Gemini AI Call
-export async function callGemini({ model, contents, generationConfig, tools, systemInstruction }) {
+// ─── Claude AI (replaces Gemini) ───────────────────────────────────────────
+
+export async function callClaude({ model, messages, system, max_tokens, temperature }) {
     const config = getConfig();
 
     if (API_MODE === 'direct') {
-        // Direct API call for localhost development
-        const geminiModel = model || 'gemini-2.0-flash';
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${config.geminiApiKey}`;
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents, generationConfig, tools, systemInstruction })
-        });
-
-        return await response.json();
-    } else {
-        // Serverless API call for production
-        const response = await fetch('/api/gemini', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model, contents, generationConfig, tools, systemInstruction })
-        });
-
-        return await response.json();
-    }
-}
-
-// Gemini Streaming Call
-export async function callGeminiStream({ model, contents, generationConfig, tools, systemInstruction, onChunk }) {
-    const config = getConfig();
-
-    if (API_MODE === 'direct') {
-        const geminiModel = model || 'gemini-2.0-flash';
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:streamGenerateContent?alt=sse&key=${config.geminiApiKey}`;
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents, generationConfig, tools, systemInstruction })
-        });
-
-        return response;
-    } else {
-        const response = await fetch('/api/gemini-stream', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model, contents, generationConfig, tools, systemInstruction })
-        });
-
-        return response;
-    }
-}
-
-// ElevenLabs TTS Call
-export async function callTTS({ text, voiceId, modelId }) {
-    const config = getConfig();
-
-    if (API_MODE === 'direct') {
-        const voice = voiceId || 'nPczCjzI2devNBz1zQrb';
-        const model = modelId || 'eleven_multilingual_v2';
-        const url = `https://api.elevenlabs.io/v1/text-to-speech/${voice}`;
-
-        const response = await fetch(url, {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
-                'Accept': 'audio/mpeg',
+                'x-api-key': config.anthropicApiKey,
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true',
                 'Content-Type': 'application/json',
-                'xi-api-key': config.elevenLabsApiKey
             },
             body: JSON.stringify({
-                text,
-                model_id: model,
-                voice_settings: {
-                    stability: 0.5,
-                    similarity_boost: 0.75,
-                    style: 0.5,
-                    use_speaker_boost: true
-                }
-            })
+                model: model || 'claude-sonnet-4-6',
+                max_tokens: max_tokens || 1024,
+                messages,
+                ...(system && { system }),
+                ...(temperature !== undefined && { temperature }),
+            }),
         });
-
-        const audioBuffer = await response.arrayBuffer();
-        return {
-            audioBuffer,
-            contentType: 'audio/mpeg'
-        };
-    } else {
-        const response = await fetch('/api/tts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, voiceId, modelId })
-        });
-
-        const data = await response.json();
-
-        // Convert base64 back to ArrayBuffer
-        const binaryString = atob(data.audio);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-
-        return {
-            audioBuffer: bytes.buffer,
-            contentType: data.contentType
-        };
-    }
-}
-
-// Gemini Image Generation
-export async function callImageGeneration({ prompt, language }) {
-    const config = getConfig();
-
-    if (API_MODE === 'direct') {
-        const model = 'gemini-2.0-flash-exp-image-generation';
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.geminiApiKey}`;
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { responseModalities: ["TEXT", "IMAGE"] }
-            })
-        });
-
         return await response.json();
     } else {
-        const response = await fetch('/api/image', {
+        const response = await fetch('/api/claude', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, language })
+            body: JSON.stringify({ model, messages, system, max_tokens, temperature }),
         });
-
         return await response.json();
     }
 }
 
-// Gemini Vision Analysis
-export async function callVision({ imageData, mimeType, prompt }) {
+export async function callClaudeStream({ model, messages, system, max_tokens, temperature, onChunk }) {
     const config = getConfig();
 
+    let response;
     if (API_MODE === 'direct') {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${config.geminiApiKey}`;
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [
-                        { inline_data: { mime_type: mimeType || 'image/png', data: imageData } },
-                        { text: prompt || 'Describe this image.' }
-                    ]
-                }]
-            })
-        });
-
-        return await response.json();
-    } else {
-        const response = await fetch('/api/vision', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageData, mimeType, prompt })
-        });
-
-        return await response.json();
-    }
-}
-
-// File Upload
-export async function uploadFile({ fileData, mimeType, displayName }) {
-    const config = getConfig();
-
-    if (API_MODE === 'direct') {
-        const url = `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${config.geminiApiKey}`;
-
-        const buffer = Uint8Array.from(atob(fileData), c => c.charCodeAt(0));
-
-        const response = await fetch(url, {
+        response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
-                'Content-Type': mimeType,
-                'X-Goog-Upload-Protocol': 'raw',
-                'X-Goog-Upload-Command': 'upload, finalize',
-                'X-Goog-Upload-Header-Content-Length': buffer.length.toString()
+                'x-api-key': config.anthropicApiKey,
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true',
+                'Content-Type': 'application/json',
             },
-            body: buffer
+            body: JSON.stringify({
+                model: model || 'claude-sonnet-4-6',
+                max_tokens: max_tokens || 1024,
+                stream: true,
+                messages,
+                ...(system && { system }),
+                ...(temperature !== undefined && { temperature }),
+            }),
         });
-
-        return await response.json();
     } else {
-        const response = await fetch('/api/upload', {
+        response = await fetch('/api/claude', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fileData, mimeType, displayName })
+            body: JSON.stringify({ model, messages, system, max_tokens, temperature, stream: true }),
         });
+    }
 
-        return await response.json();
+    if (onChunk) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '';
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value);
+            // Parse SSE lines for content_block_delta events
+            for (const line of chunk.split('\n')) {
+                if (!line.startsWith('data: ')) continue;
+                const raw = line.slice(6).trim();
+                if (raw === '[DONE]') continue;
+                try {
+                    const evt = JSON.parse(raw);
+                    if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
+                        fullText += evt.delta.text;
+                        onChunk(evt.delta.text, fullText);
+                    }
+                } catch { /* ignore malformed lines */ }
+            }
+        }
+        return fullText;
+    }
+
+    return response;
+}
+
+// Backward-compat aliases so existing app.js code keeps working
+export async function callGemini(params) {
+    // Map Gemini message format → Claude format
+    const messages = (params.contents || []).map(c => ({
+        role: c.role === 'model' ? 'assistant' : 'user',
+        content: c.parts?.map(p => p.text || '').join('') || '',
+    }));
+    const system = params.systemInstruction?.parts?.[0]?.text;
+    const max_tokens = params.generationConfig?.maxOutputTokens || 1024;
+    return callClaude({ messages, system, max_tokens });
+}
+
+export async function callGeminiStream(params) {
+    const messages = (params.contents || []).map(c => ({
+        role: c.role === 'model' ? 'assistant' : 'user',
+        content: c.parts?.map(p => p.text || '').join('') || '',
+    }));
+    const system = params.systemInstruction?.parts?.[0]?.text;
+    const max_tokens = params.generationConfig?.maxOutputTokens || 1024;
+    return callClaudeStream({ messages, system, max_tokens, onChunk: params.onChunk });
+}
+
+// ─── Groq TTS (replaces ElevenLabs) ───────────────────────────────────────
+
+export async function callTTS({ text, voice, speed }) {
+    const config = getConfig();
+    const selectedVoice = voice || 'Fritz-PlayAI';
+
+    if (API_MODE === 'direct') {
+        const response = await fetch('https://api.groq.com/openai/v1/audio/speech', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${config.groqApiKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: 'playai-tts',
+                input: text,
+                voice: selectedVoice,
+                response_format: 'wav',
+                speed: speed || 1.0,
+            }),
+        });
+        return { audioBuffer: await response.arrayBuffer(), contentType: 'audio/wav' };
+    } else {
+        const response = await fetch('/api/groq-tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, voice: selectedVoice, speed }),
+        });
+        return { audioBuffer: await response.arrayBuffer(), contentType: 'audio/wav' };
     }
 }
 
-// Export API_MODE for checking
+// ─── Groq STT (new) ────────────────────────────────────────────────────────
+
+export async function callSTT({ audioBlob, language }) {
+    const config = getConfig();
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'audio.webm');
+    formData.append('model', 'whisper-large-v3-turbo');
+    if (language) formData.append('language', language);
+
+    if (API_MODE === 'direct') {
+        const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${config.groqApiKey}` },
+            body: formData,
+        });
+        const data = await response.json();
+        return data.text || '';
+    } else {
+        const response = await fetch('/api/groq-stt', {
+            method: 'POST',
+            body: formData,
+        });
+        const data = await response.json();
+        return data.text || '';
+    }
+}
+
+// ─── Neo4j Database ────────────────────────────────────────────────────────
+
+export async function queryNeo4j({ query, parameters }) {
+    const response = await fetch('/api/neo4j', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, parameters }),
+    });
+    return await response.json();
+}
+
+// ─── Vision (kept, still uses Claude's vision capability) ──────────────────
+
+export async function callVision({ imageData, mimeType, prompt }) {
+    const messages = [{
+        role: 'user',
+        content: [
+            { type: 'image', source: { type: 'base64', media_type: mimeType || 'image/png', data: imageData } },
+            { type: 'text', text: prompt || 'Describe this image.' },
+        ],
+    }];
+    return callClaude({ messages, max_tokens: 512 });
+}
+
+// ─── Image generation (stub — Claude doesn't generate images) ─────────────
+
+export async function callImageGeneration({ prompt }) {
+    // Claude cannot generate images natively; return a placeholder response
+    return callClaude({
+        messages: [{ role: 'user', content: `Describe a detailed visual scene for: ${prompt}` }],
+        max_tokens: 256,
+    });
+}
+
+// ─── File upload (kept for compatibility, now a no-op stub) ───────────────
+
+export async function uploadFile({ fileData, mimeType, displayName }) {
+    console.warn('uploadFile: direct file uploads not supported with Claude. Use base64 via callVision instead.');
+    return { name: displayName || 'file', mimeType };
+}
+
 export { API_MODE };

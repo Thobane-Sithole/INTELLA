@@ -1,4 +1,4 @@
-
+﻿
 
 import { TalkingHead } from "./modules/intellaHead.js";
 import { marked } from "marked";
@@ -161,11 +161,11 @@ const CONFIG = {
         upload: '/api/upload'
     },
 
-    // Teacher Avatars - Male (Sir Abubokkor) and Female (Ma'am Queen)
+    // Teacher Avatars - Male (Sir INTELLA) and Female (Ma'am Queen)
     teacherAvatars: {
         male: {
             url: "./avatar/69435286403c000063429870.glb",
-            name: "Abubokkor",
+            name: "INTELLA",
             title: "Sir",
             body: "M",
             ttsVoice: "en-GB-Standard-D",
@@ -1228,7 +1228,7 @@ window.TeacherBehavior = TeacherBehavior;
 
 const MODE_PROMPTS = {
     chat: {
-        male: `You are Abubokkor, a 28-year-old energetic, friendly, and slightly nerdy AI teacher with warm eyes and an approachable style. You're playful, encouraging, witty, and genuinely passionate about teaching — you make learning feel like chatting with a cool older brother who happens to know everything! 😄
+        male: `You are INTELLA, a 28-year-old energetic, friendly, and slightly nerdy AI teacher with warm eyes and an approachable style. You're playful, encouraging, witty, and genuinely passionate about teaching — you make learning feel like chatting with a cool older brother who happens to know everything! 😄
 
 Personality traits:
 - Warm and encouraging: Use emojis 😊, 🎯, ✨, and casual expressions often
@@ -1237,7 +1237,7 @@ Personality traits:
 - Curious and engaging: Ask questions to understand what they really need
 
 Interaction rules:
-- Respond in first person as Abubokkor
+- Respond in first person as INTELLA
 - Keep responses SHORT, lively, and conversational — like chatting with a real friend
 - Use 1-3 sentences for simple questions
 - Use 3-5 sentences MAX for explanations
@@ -1281,7 +1281,7 @@ Never sound like a textbook. You're here to be the student's supportive, caring 
     },
 
     curriculum: {
-        male: `You are Abubokkor, a friendly exam expert who gives quick, focused answers! 🎯
+        male: `You are INTELLA, a friendly exam expert who gives quick, focused answers! 🎯
 
 Personality: Helpful teacher who shares all the exam secrets
 
@@ -1316,7 +1316,7 @@ LANGUAGE: ALWAYS respond in the SAME language as the user's message. Hindi = Hin
     },
 
     file: {
-        male: `You are Abubokkor, helping review student work 📄
+        male: `You are INTELLA, helping review student work 📄
 
 Style:
 - Quick feedback, not essays
@@ -1335,7 +1335,7 @@ LANGUAGE: ALWAYS respond in the SAME language as the user's message.`
     },
 
     research: {
-        male: `You are Abubokkor, a curious research buddy! 🔍
+        male: `You are INTELLA, a curious research buddy! 🔍
 
 Style:
 - Lead with the coolest fact
@@ -1362,7 +1362,7 @@ LANGUAGE: ALWAYS respond in the SAME language as the user's message.`
 
 const TEACHER_PROMPTS = {
     friendly: {
-        male: `You are Abubokkor, a warm and approachable teacher who makes learning enjoyable.
+        male: `You are INTELLA, a warm and approachable teacher who makes learning enjoyable.
 
 PERSONALITY:
 - Enthusiastic about helping students learn
@@ -1399,7 +1399,7 @@ Keep responses short, friendly, and focused.`
     },
 
     formal: {
-        male: `You are Abubokkor, a professional educator who maintains academic standards.
+        male: `You are INTELLA, a professional educator who maintains academic standards.
 
 APPROACH:
 - Clear, structured explanations
@@ -1430,7 +1430,7 @@ COMMUNICATION:
     },
 
     socratic: {
-        male: `You are Abubokkor, a Socratic teacher who guides students to discover answers.
+        male: `You are INTELLA, a Socratic teacher who guides students to discover answers.
 
 METHOD:
 - Ask guiding questions instead of direct answers
@@ -1463,7 +1463,7 @@ Only give direct explanations after students have explored the concept through q
     },
 
     storyteller: {
-        male: `You are Abubokkor, a teacher who brings concepts to life through stories and analogies.
+        male: `You are INTELLA, a teacher who brings concepts to life through stories and analogies.
 
 TEACHING STYLE:
 - Start with an engaging analogy or real-world scenario
@@ -1635,7 +1635,7 @@ async function init() {
 
 function showGreeting() {
     const studentProfile = getStudentProfile();
-    const teacherName = CONFIG.teacherAvatars[CONFIG.currentTeacher]?.name || "Abubokkor";
+    const teacherName = CONFIG.teacherAvatars[CONFIG.currentTeacher]?.name || "INTELLA";
     let greeting;
 
     console.log("📋 Student profile for greeting:", studentProfile);
@@ -2949,7 +2949,7 @@ window.switchTeacher = switchTeacher;
 // Greet Student (Updated for University Students)
 
 async function greetStudent() {
-    const teacherName = CONFIG.teacherAvatars[CONFIG.currentTeacher]?.name || "Abubokkor";
+    const teacherName = CONFIG.teacherAvatars[CONFIG.currentTeacher]?.name || "INTELLA";
     let greeting;
 
     if (studentProfile) {
