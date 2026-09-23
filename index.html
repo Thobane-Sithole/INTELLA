@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -25,6 +25,9 @@
         }
     }
     </script>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
@@ -74,7 +77,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="auth-modal-title">Welcome to INTELLA</h2>
-                <button id="close-auth" class="close-btn">✕</button>
+                <button id="close-auth" class="close-btn"><i class="bi bi-x-lg"></i></button>
             </div>
             <div class="modal-body">
                 <div id="auth-forms">
@@ -131,7 +134,7 @@
                         <div class="profile-avatar" id="profile-avatar-container">
                             <img id="profile-avatar-img" src="" alt="Profile"
                                 style="display:none; width:100%; height:100%; border-radius:50%; object-fit:cover;">
-                            <span id="profile-avatar-text">👤</span>
+                            <span id="profile-avatar-text"><i class="bi bi-person-fill"></i></span>
                         </div>
                         <button id="change-profile-pic-btn" class="btn-link small">Change Photo</button>
                         <input type="file" id="change-profile-pic-input" accept="image/*" hidden>
@@ -153,8 +156,8 @@
                             </div>
                         </div>
                         <div class="profile-actions">
-                            <button id="edit-profile-btn" class="btn primary">✏️ Edit Profile</button>
-                            <button id="link-account-btn" class="btn primary hidden">🔗 Link Account</button>
+                            <button id="edit-profile-btn" class="btn primary"><i class="bi bi-pencil-fill"></i> Edit Profile</button>
+                            <button id="link-account-btn" class="btn primary hidden"><i class="bi bi-link-45deg"></i> Link Account</button>
                             <button id="logout-btn" class="btn secondary">Sign Out</button>
                         </div>
                     </div>
@@ -198,7 +201,7 @@
                         <!-- Quiz Header -->
                         <div class="quiz-overlay-header">
                             <div class="quiz-overlay-title">
-                                <span class="quiz-icon">📝</span>
+                                <span class="quiz-icon"><i class="bi bi-pencil-square"></i></span>
                                 <div>
                                     <h3 id="quiz-overlay-subject">Quiz</h3>
                                     <p id="quiz-overlay-topic">Topic</p>
@@ -207,9 +210,9 @@
                             <div class="quiz-overlay-stats">
                                 <span class="quiz-overlay-progress"><span id="quiz-overlay-current">1</span>/<span
                                         id="quiz-overlay-total">10</span></span>
-                                <span class="quiz-overlay-score">🎯 <span id="quiz-overlay-score">0</span></span>
+                                <span class="quiz-overlay-score"><i class="bi bi-bullseye"></i> <span id="quiz-overlay-score">0</span></span>
                             </div>
-                            <button id="close-quiz-overlay" class="quiz-overlay-close">✕</button>
+                            <button id="close-quiz-overlay" class="quiz-overlay-close"><i class="bi bi-x-lg"></i></button>
                         </div>
 
                         <!-- Quiz Question Area -->
@@ -225,9 +228,9 @@
 
                         <!-- Quiz Navigation -->
                         <div class="quiz-overlay-nav">
-                            <button id="quiz-overlay-prev" class="quiz-nav-btn" disabled>← Prev</button>
+                            <button id="quiz-overlay-prev" class="quiz-nav-btn" disabled><i class="bi bi-chevron-left"></i> Prev</button>
                             <div class="quiz-overlay-dots" id="quiz-overlay-dots"></div>
-                            <button id="quiz-overlay-next" class="quiz-nav-btn">Next →</button>
+                            <button id="quiz-overlay-next" class="quiz-nav-btn">Next <i class="bi bi-chevron-right"></i></button>
                         </div>
                     </div>
                 </div>
@@ -240,21 +243,21 @@
                     <div class="glass-overlay"></div>
                     <div class="glass-specular"></div>
                     <div class="glass-content quiz-results-content">
-                        <h2>📊 Quiz Complete!</h2>
+                        <h2><i class="bi bi-trophy-fill"></i> Quiz Complete!</h2>
                         <div class="results-score-big">
                             <span id="results-score-percent">0%</span>
                             <span id="results-grade-letter">F</span>
                         </div>
                         <div class="results-details">
-                            <div class="result-stat"><span>✅</span> <span id="results-correct-count">0</span> Correct
+                            <div class="result-stat"><span><i class="bi bi-check-circle-fill"></i></span> <span id="results-correct-count">0</span> Correct
                             </div>
-                            <div class="result-stat"><span>❌</span> <span id="results-wrong-count">0</span> Wrong</div>
-                            <div class="result-stat"><span>⏱️</span> <span id="results-time-taken">0:00</span></div>
+                            <div class="result-stat"><span><i class="bi bi-x-circle-fill"></i></span> <span id="results-wrong-count">0</span> Wrong</div>
+                            <div class="result-stat"><span><i class="bi bi-stopwatch-fill"></i></span> <span id="results-time-taken">0:00</span></div>
                         </div>
                         <p id="results-message-text" class="results-message">Great job!</p>
                         <div class="results-actions">
-                            <button id="quiz-review-btn" class="btn secondary">📋 Review</button>
-                            <button id="quiz-close-btn" class="btn primary">✓ Done</button>
+                            <button id="quiz-review-btn" class="btn secondary"><i class="bi bi-clipboard-fill"></i> Review</button>
+                            <button id="quiz-close-btn" class="btn primary"><i class="bi bi-check-lg"></i> Done</button>
                         </div>
                     </div>
                 </div>
@@ -275,7 +278,7 @@
                 <div class="glass-specular"></div>
                 <div class="glass-content header-content">
                     <div class="logo">
-                        <span class="logo-icon">🧠</span>
+                        <span class="logo-icon"><i class="bi bi-lightbulb-fill"></i></span>
                         <h1>INTELLA</h1>
                     </div>
                     <div class="header-center">
@@ -287,7 +290,7 @@
                     <div class="header-actions">
                         <!-- Progress Widget in Header -->
                         <div id="progress-widget" class="header-progress-widget" title="Your Learning Progress">
-                            <span class="widget-icon">📊</span>
+                            <span class="widget-icon"><i class="bi bi-bar-chart-fill"></i></span>
                             <div class="mini-progress-container">
                                 <div class="mini-progress">
                                     <div class="progress-fill" style="width: 0%"></div>
@@ -296,22 +299,22 @@
                             </div>
                         </div>
                         <button id="library-btn" class="glass-btn" title="Textbook Library">
-                            <span class="btn-icon">📚</span>
+                            <span class="btn-icon"><i class="bi bi-book-fill"></i></span>
                         </button>
                         <button id="credits-btn" class="glass-btn" title="Credits & Subscription">
-                            <span class="btn-icon">💎</span>
+                            <span class="btn-icon"><i class="bi bi-gem"></i></span>
                             <span id="credits-btn-text" class="btn-text">Credits</span>
                         </button>
                         <button id="user-btn" class="glass-btn user-btn-container" title="Account">
-                            <span id="user-btn-icon" class="btn-icon">👤</span>
+                            <span id="user-btn-icon" class="btn-icon"><i class="bi bi-person-fill"></i></span>
                             <img id="user-btn-avatar" class="user-btn-avatar hidden" src="" alt="Profile">
                             <span id="user-btn-text" class="btn-text">Login</span>
                         </button>
                         <button id="toggle-chat" class="glass-btn" title="Toggle Chat Panel">
-                            <span class="btn-icon">💬</span>
+                            <span class="btn-icon"><i class="bi bi-chat-text-fill"></i></span>
                         </button>
                         <button id="openSettings" class="glass-btn" title="Settings">
-                            <span class="btn-icon">⚙️</span>
+                            <span class="btn-icon"><i class="bi bi-gear-fill"></i></span>
                         </button>
                     </div>
                 </div>
@@ -327,15 +330,15 @@
                 <div class="glass-content sidebar-content">
                     <!-- Sidebar Header -->
                     <div class="sidebar-header">
-                        <h3>💬 Chat History</h3>
+                        <h3><i class="bi bi-chat-left-text-fill"></i> Chat History</h3>
                         <button id="close-history-sidebar" class="close-panel-btn" title="Close">
-                            <span>✕</span>
+                            <i class="bi bi-x-lg"></i>
                         </button>
                     </div>
 
                     <!-- New Chat Button -->
                     <button id="new-chat-btn" class="new-chat-btn">
-                        <span class="btn-icon">✨</span>
+                        <span class="btn-icon"><i class="bi bi-stars"></i></span>
                         <span>New Chat</span>
                     </button>
 
@@ -354,7 +357,7 @@
 
                     <!-- Login Prompt (shown when not logged in) -->
                     <div id="history-login-prompt" class="history-login-prompt hidden">
-                        <span class="prompt-icon">🔐</span>
+                        <span class="prompt-icon"><i class="bi bi-shield-lock-fill"></i></span>
                         <p>Sign in to save and view your chat history</p>
                         <button id="history-login-btn" class="btn primary">Sign In</button>
                     </div>
@@ -374,31 +377,27 @@
                     <!-- Panel Header -->
                     <div class="panel-header">
                         <button id="toggle-history-sidebar" class="history-toggle-btn" title="Chat History">
-                            <span>📜</span>
+                            <i class="bi bi-clock-history"></i>
                         </button>
                         <div class="mode-selector">
-                            <button class="mode-btn active" data-mode="chat" title="Chat">
-                                <span>💬</span>
+                            <button class="mode-btn active" data-mode="chat" title="Chat"><i class="bi bi-chat-dots-fill"></i>
                             </button>
-                            <button class="mode-btn" data-mode="curriculum" title="Curriculum">
-                                <span>📚</span>
+                            <button class="mode-btn" data-mode="curriculum" title="Curriculum"><i class="bi bi-journal-bookmark-fill"></i>
                             </button>
-                            <button class="mode-btn" data-mode="file" title="File Analysis">
-                                <span>📁</span>
+                            <button class="mode-btn" data-mode="file" title="File Analysis"><i class="bi bi-folder2-open"></i>
                             </button>
-                            <button class="mode-btn" data-mode="research" title="Research">
-                                <span>🔬</span>
+                            <button class="mode-btn" data-mode="research" title="Research"><i class="bi bi-search"></i>
                             </button>
                         </div>
                         <button id="close-chat" class="close-panel-btn">
-                            <span>✕</span>
+                            <i class="bi bi-x-lg"></i>
                         </button>
                     </div>
 
                     <!-- Chat Messages -->
                     <div id="chat-messages" class="chat-messages">
                         <div class="welcome-message">
-                            <div class="welcome-avatar">👋</div>
+                            <div class="welcome-avatar"><i class="bi bi-hand-index-thumb-fill"></i></div>
                             <h3>Welcome to INTELLA!</h3>
                             <p>Ask me anything about your studies. I'm here to help you learn!</p>
                         </div>
@@ -407,7 +406,7 @@
                     <!-- File Preview Area -->
                     <div id="file-preview" class="file-preview hidden">
                         <div class="preview-header">
-                            <span class="preview-icon">📄</span>
+                            <span class="preview-icon"><i class="bi bi-file-earmark-fill"></i></span>
                             <span id="file-name" class="file-name">No file</span>
                             <button id="clear-file" class="clear-file-btn">✕</button>
                         </div>
@@ -419,11 +418,11 @@
                         <div class="input-container">
                             <label id="file-upload-btn" class="upload-btn" title="Upload file">
                                 <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt" hidden>
-                                <span>📎</span>
+                                <i class="bi bi-paperclip"></i>
                             </label>
                             <textarea id="user-input" placeholder="Ask your teacher anything..." rows="1"></textarea>
                             <button id="send-btn" class="send-btn" title="Send message">
-                                <span>▶</span>
+                                <i class="bi bi-send-fill"></i>
                             </button>
                         </div>
                         <div class="voice-controls">
@@ -617,7 +616,7 @@
                                 </div>
                             </div>
                             <button id="mic-btn" class="voice-btn" title="Voice input">
-                                <span>🎙️</span>
+                                <i class="bi bi-mic-fill"></i>
                             </button>
                             <button id="live-mic-btn" class="voice-btn live-btn" title="Live conversation">
                                 <span class="live-dot"></span>
@@ -632,7 +631,7 @@
                                 <span class="live-label">LIVE</span>
                             </button>
                             <button id="stop-btn" class="voice-btn stop" title="Stop speaking">
-                                <span>⏹️</span>
+                                <i class="bi bi-stop-fill"></i>
                             </button>
                         </div>
                     </div>
@@ -650,7 +649,7 @@
                 <div class="glass-content modal-content onboarding-content">
                     <div class="onboarding-header">
                         <div class="onboarding-logo">
-                            <span class="logo-icon pulse">🧠</span>
+                            <span class="logo-icon pulse"><i class="bi bi-lightbulb-fill"></i></span>
                             <span class="logo-text">INTELLA</span>
                         </div>
                         <h2 id="onboarding-title">Welcome to Your AI Teacher!</h2>
@@ -689,18 +688,18 @@
                     <!-- Step 0: Welcome - New Student or Login -->
                     <div class="onboarding-step active" data-step="0">
                         <div class="step-header">
-                            <span class="step-icon">👋</span>
+                            <span class="step-icon"><i class="bi bi-hand-index-thumb-fill"></i></span>
                             <h3>Get Started</h3>
                         </div>
                         <p class="step-desc">Are you new here or returning?</p>
                         <div class="welcome-options">
                             <button id="new-student-btn" class="btn primary welcome-btn">
-                                <span class="btn-icon">🎓</span>
+                                <span class="btn-icon"><i class="bi bi-mortarboard-fill"></i></span>
                                 <span>I'm a New Student</span>
                                 <small>Create your profile and start learning</small>
                             </button>
                             <button id="returning-student-btn" class="btn secondary welcome-btn">
-                                <span class="btn-icon">🔑</span>
+                                <span class="btn-icon"><i class="bi bi-key-fill"></i></span>
                                 <span>I Have an Account</span>
                                 <small>Login with email & password</small>
                             </button>
@@ -733,12 +732,12 @@
                     <!-- Step 1: Country Selection -->
                     <div class="onboarding-step" data-step="1">
                         <div class="step-header">
-                            <span class="step-icon">🌍</span>
+                            <span class="step-icon"><i class="bi bi-globe2"></i></span>
                             <h3>Select Your Country</h3>
                         </div>
                         <p class="step-desc">Choose your country to get curriculum-aligned content</p>
                         <div class="search-wrapper">
-                            <span class="search-icon">🔍</span>
+                            <span class="search-icon"><i class="bi bi-search"></i></span>
                             <input type="text" id="country-search" class="search-input"
                                 placeholder="Search countries...">
                         </div>
@@ -754,38 +753,38 @@
                     <!-- Step 2: Education Level Selection -->
                     <div class="onboarding-step" data-step="2">
                         <div class="step-header">
-                            <span class="step-icon">📚</span>
+                            <span class="step-icon"><i class="bi bi-book-fill"></i></span>
                             <h3>Education Level</h3>
                         </div>
                         <p class="step-desc">What level are you studying at?</p>
                         <div id="level-grid" class="selection-grid level-grid">
                             <button class="level-btn" data-level="primary">
-                                <span class="level-icon">📒</span>
+                                <span class="level-icon"><i class="bi bi-journal"></i></span>
                                 <span class="level-name">Primary School</span>
                                 <span class="level-desc">Class 1-5</span>
                             </button>
                             <button class="level-btn" data-level="middle">
-                                <span class="level-icon">📗</span>
+                                <span class="level-icon"><i class="bi bi-journal-text"></i></span>
                                 <span class="level-name">Middle School</span>
                                 <span class="level-desc">Class 6-8</span>
                             </button>
                             <button class="level-btn" data-level="secondary">
-                                <span class="level-icon">📘</span>
+                                <span class="level-icon"><i class="bi bi-journal-bookmark"></i></span>
                                 <span class="level-name">Secondary School</span>
                                 <span class="level-desc">Class 9-10 (SSC/O-Level)</span>
                             </button>
                             <button class="level-btn" data-level="higher_secondary">
-                                <span class="level-icon">📙</span>
+                                <span class="level-icon"><i class="bi bi-journal-richtext"></i></span>
                                 <span class="level-name">Higher Secondary</span>
                                 <span class="level-desc">Class 11-12 (HSC/A-Level)</span>
                             </button>
                             <button class="level-btn" data-level="undergraduate">
-                                <span class="level-icon">🎓</span>
+                                <span class="level-icon"><i class="bi bi-mortarboard-fill"></i></span>
                                 <span class="level-name">Undergraduate</span>
                                 <span class="level-desc">Bachelor's Degree (BSc/BA/BBA)</span>
                             </button>
                             <button class="level-btn" data-level="postgraduate">
-                                <span class="level-icon">🎓</span>
+                                <span class="level-icon"><i class="bi bi-mortarboard-fill"></i></span>
                                 <span class="level-name">Postgraduate</span>
                                 <span class="level-desc">Master's Degree (MSc/MA/MBA)</span>
                             </button>
@@ -799,7 +798,7 @@
                     <!-- Step 3: Grade/Year Selection (for school) OR Department (for university) -->
                     <div class="onboarding-step" data-step="3">
                         <div class="step-header">
-                            <span class="step-icon" id="step3-icon">📖</span>
+                            <span class="step-icon" id="step3-icon"><i class="bi bi-book-open-fill"></i></span>
                             <h3 id="step3-title">Select Your Class</h3>
                         </div>
                         <p class="step-desc" id="step3-desc">What class are you studying in?</p>
@@ -812,27 +811,27 @@
                         <!-- For University Students (hidden by default) -->
                         <div id="department-grid" class="selection-grid dept-grid hidden">
                             <button class="dept-btn" data-dept="engineering">
-                                <span class="dept-icon">⚙️</span>
+                                <span class="dept-icon"><i class="bi bi-tools"></i></span>
                                 <span class="dept-name">Engineering</span>
                             </button>
                             <button class="dept-btn" data-dept="business">
-                                <span class="dept-icon">💼</span>
+                                <span class="dept-icon"><i class="bi bi-briefcase-fill"></i></span>
                                 <span class="dept-name">Business</span>
                             </button>
                             <button class="dept-btn" data-dept="medical">
-                                <span class="dept-icon">⚕️</span>
+                                <span class="dept-icon"><i class="bi bi-heart-pulse-fill"></i></span>
                                 <span class="dept-name">Medical Sciences</span>
                             </button>
                             <button class="dept-btn" data-dept="science">
-                                <span class="dept-icon">🔬</span>
+                                <span class="dept-icon"><i class="bi bi-microscope"></i></span>
                                 <span class="dept-name">Pure Sciences</span>
                             </button>
                             <button class="dept-btn" data-dept="arts">
-                                <span class="dept-icon">📚</span>
+                                <span class="dept-icon"><i class="bi bi-book-fill"></i></span>
                                 <span class="dept-name">Arts & Social Sciences</span>
                             </button>
                             <button class="dept-btn" data-dept="law">
-                                <span class="dept-icon">⚖️</span>
+                                <span class="dept-icon"><i class="bi bi-bank2"></i></span>
                                 <span class="dept-name">Law</span>
                             </button>
                         </div>
@@ -846,7 +845,7 @@
                     <!-- Step 4: Stream/Program Selection -->
                     <div class="onboarding-step" data-step="4">
                         <div class="step-header">
-                            <span class="step-icon" id="step4-icon">🎯</span>
+                            <span class="step-icon" id="step4-icon"><i class="bi bi-bullseye"></i></span>
                             <h3 id="step4-title">Select Your Stream</h3>
                         </div>
                         <p class="step-desc" id="step4-desc">Choose your academic stream</p>
@@ -854,15 +853,15 @@
                         <!-- For School Streams -->
                         <div id="stream-grid" class="selection-grid stream-selection-grid">
                             <button class="stream-btn" data-stream="science">
-                                <span class="stream-icon">🔬</span>
+                                <span class="stream-icon"><i class="bi bi-flask-fill"></i></span>
                                 <span class="stream-name">Science</span>
                             </button>
                             <button class="stream-btn" data-stream="commerce">
-                                <span class="stream-icon">📊</span>
+                                <span class="stream-icon"><i class="bi bi-graph-up"></i></span>
                                 <span class="stream-name">Commerce</span>
                             </button>
                             <button class="stream-btn" data-stream="arts">
-                                <span class="stream-icon">🎨</span>
+                                <span class="stream-icon"><i class="bi bi-palette-fill"></i></span>
                                 <span class="stream-name">Arts/Humanities</span>
                             </button>
                         </div>
@@ -889,7 +888,7 @@
                     <!-- Step 5: Create Account -->
                     <div class="onboarding-step" data-step="5">
                         <div class="step-header">
-                            <span class="step-icon">🔐</span>
+                            <span class="step-icon"><i class="bi bi-shield-lock-fill"></i></span>
                             <h3>Create Your Account</h3>
                         </div>
                         <p class="step-desc">Save your progress and access from any device</p>
@@ -897,7 +896,7 @@
                         <div class="auth-form" id="signup-onboarding-form">
                             <div class="profile-picture-section">
                                 <div class="profile-picture-preview" id="profile-pic-preview">
-                                    <span>📷</span>
+                                    <i class="bi bi-camera-fill"></i>
                                 </div>
                                 <button type="button" id="upload-profile-pic-btn" class="btn secondary small">Add Photo
                                     (Optional)</button>
@@ -913,7 +912,7 @@
                         <div class="step-actions final-step">
                             <button class="btn secondary onboarding-back">← Back</button>
                             <button id="complete-onboarding" class="btn primary success-btn">
-                                <span class="btn-icon">🚀</span>
+                                <span class="btn-icon"><i class="bi bi-rocket-takeoff-fill"></i></span>
                                 <span>Create Account & Start!</span>
                             </button>
                         </div>
@@ -934,8 +933,8 @@
                 <div class="glass-specular"></div>
                 <div class="glass-content modal-content">
                     <div class="modal-header">
-                        <h2>📚 Textbook Library</h2>
-                        <button id="closeLibrary" class="close-btn">✕</button>
+                        <h2><i class="bi bi-book-fill"></i> Textbook Library</h2>
+                        <button id="closeLibrary" class="close-btn"><i class="bi bi-x-lg"></i></button>
                     </div>
                     <div class="modal-body library-body">
                         <!-- Student Info Banner -->
@@ -949,8 +948,8 @@
 
                         <!-- Library Tabs -->
                         <div class="library-tabs">
-                            <button class="library-tab active" data-tab="my-books">📖 My Books</button>
-                            <button class="library-tab" data-tab="all-books">🌐 All Books</button>
+                            <button class="library-tab active" data-tab="my-books"><i class="bi bi-book-open"></i> My Books</button>
+                            <button class="library-tab" data-tab="all-books"><i class="bi bi-globe2"></i> All Books</button>
                         </div>
 
                         <!-- Books Grid -->
@@ -963,17 +962,17 @@
 
                         <!-- Upload Section -->
                         <div class="library-upload-section">
-                            <p>📤 Missing a book? Upload it to help others!</p>
+                            <p><i class="bi bi-upload"></i> Missing a book? Upload it to help others!</p>
                             <label class="upload-book-btn">
                                 <input type="file" id="library-file-input" accept=".pdf" hidden>
-                                <span class="btn-icon">📄</span>
+                                <span class="btn-icon"><i class="bi bi-file-earmark-fill"></i></span>
                                 <span>Upload PDF</span>
                             </label>
                         </div>
 
                         <!-- Upload Form (hidden by default) -->
                         <div id="library-upload-form" class="library-upload-form hidden">
-                            <h3>📝 Book Details</h3>
+                            <h3><i class="bi bi-pencil-square"></i> Book Details</h3>
                             <div class="upload-form-grid">
                                 <div class="form-group">
                                     <label>Book Title</label>
@@ -1038,7 +1037,7 @@
                             <div class="upload-form-actions">
                                 <button id="cancel-upload-btn" class="btn secondary">Cancel</button>
                                 <button id="confirm-upload-btn" class="btn primary">
-                                    <span class="btn-icon">📤</span>
+                                    <span class="btn-icon"><i class="bi bi-upload"></i></span>
                                     Upload & Process
                                 </button>
                             </div>
@@ -1058,8 +1057,8 @@
                 <div class="glass-content modal-content">
                     <div class="modal-header">
                         <button id="backToLibrary" class="back-btn">←</button>
-                        <h2 id="chapter-book-title">📖 Book Title</h2>
-                        <button id="closeChapter" class="close-btn">✕</button>
+                        <h2 id="chapter-book-title"><i class="bi bi-journal-bookmark-fill"></i> Book Title</h2>
+                        <button id="closeChapter" class="close-btn"><i class="bi bi-x-lg"></i></button>
                     </div>
                     <div class="modal-body chapter-body">
                         <div id="chapters-list" class="chapters-list">
@@ -1084,12 +1083,12 @@
                     <!-- Quiz Setup Screen -->
                     <div id="quiz-setup" class="quiz-screen">
                         <div class="quiz-header">
-                            <h2>📝 Quiz Time!</h2>
-                            <button id="close-quiz" class="close-btn">✕</button>
+                            <h2><i class="bi bi-pencil-square"></i> Quiz Time!</h2>
+                            <button id="close-quiz" class="close-btn"><i class="bi bi-x-lg"></i></button>
                         </div>
                         <div class="quiz-setup-body">
                             <div class="quiz-subject-display">
-                                <span class="quiz-icon">🎯</span>
+                                <span class="quiz-icon"><i class="bi bi-bullseye"></i></span>
                                 <h3 id="quiz-subject-title">Mathematics</h3>
                                 <p id="quiz-topic-title">Algebra Basics</p>
                             </div>
@@ -1106,18 +1105,18 @@
                                 <label>Difficulty Level</label>
                                 <div class="difficulty-options">
                                     <button class="difficulty-btn" data-difficulty="easy">
-                                        <span>😊</span> Easy
+                                        <i class="bi bi-emoji-smile-fill"></i> Easy
                                     </button>
                                     <button class="difficulty-btn active" data-difficulty="medium">
-                                        <span>🤔</span> Medium
+                                        <i class="bi bi-emoji-neutral-fill"></i> Medium
                                     </button>
                                     <button class="difficulty-btn" data-difficulty="hard">
-                                        <span>🔥</span> Hard
+                                        <i class="bi bi-fire"></i> Hard
                                     </button>
                                 </div>
                             </div>
                             <button id="start-quiz-btn" class="btn primary quiz-start-btn">
-                                <span>🚀</span> Start Quiz
+                                <i class="bi bi-rocket-takeoff-fill"></i> Start Quiz
                             </button>
                         </div>
                     </div>
@@ -1137,11 +1136,10 @@
                             <div class="quiz-progress-info">
                                 <span id="quiz-current-num">1</span>/<span id="quiz-total-num">10</span>
                             </div>
-                            <div class="quiz-score-display">
-                                <span>🎯</span>
+                            <div class="quiz-score-display"><i class="bi bi-bullseye"></i>
                                 <span id="quiz-score">0</span>
                             </div>
-                            <button id="close-quiz-questions" class="close-btn">✕</button>
+                            <button id="close-quiz-questions" class="close-btn"><i class="bi bi-x-lg"></i></button>
                         </div>
                         <div class="quiz-progress-bar">
                             <div id="quiz-progress-fill" class="quiz-progress-fill"></div>
@@ -1163,8 +1161,8 @@
                     <!-- Quiz Results Screen -->
                     <div id="quiz-results" class="quiz-screen hidden">
                         <div class="quiz-header">
-                            <h2>📊 Quiz Results</h2>
-                            <button id="close-quiz-results" class="close-btn">✕</button>
+                            <h2><i class="bi bi-bar-chart-fill"></i> Quiz Results</h2>
+                            <button id="close-quiz-results" class="close-btn"><i class="bi bi-x-lg"></i></button>
                         </div>
                         <div class="quiz-results-body">
                             <div class="results-score-circle">
@@ -1179,28 +1177,26 @@
                             </div>
                             <div class="results-stats">
                                 <div class="stat-item correct">
-                                    <span class="stat-icon">✅</span>
+                                    <span class="stat-icon"><i class="bi bi-check-circle-fill"></i></span>
                                     <span id="results-correct">0</span>
                                     <span class="stat-label">Correct</span>
                                 </div>
                                 <div class="stat-item wrong">
-                                    <span class="stat-icon">❌</span>
+                                    <span class="stat-icon"><i class="bi bi-x-circle-fill"></i></span>
                                     <span id="results-wrong">0</span>
                                     <span class="stat-label">Wrong</span>
                                 </div>
                                 <div class="stat-item time">
-                                    <span class="stat-icon">⏱️</span>
+                                    <span class="stat-icon"><i class="bi bi-stopwatch-fill"></i></span>
                                     <span id="results-time">0:00</span>
                                     <span class="stat-label">Time</span>
                                 </div>
                             </div>
                             <p id="results-message" class="results-message">Great job!</p>
                             <div class="results-actions">
-                                <button id="review-quiz-btn" class="btn secondary">
-                                    <span>📋</span> Review Answers
+                                <button id="review-quiz-btn" class="btn secondary"><i class="bi bi-clipboard-fill"></i> Review Answers
                                 </button>
-                                <button id="retry-quiz-btn" class="btn primary">
-                                    <span>🔄</span> Try Again
+                                <button id="retry-quiz-btn" class="btn primary"><i class="bi bi-arrow-clockwise"></i> Try Again
                                 </button>
                             </div>
                         </div>
@@ -1209,15 +1205,14 @@
                     <!-- Quiz Review Screen -->
                     <div id="quiz-review" class="quiz-screen hidden">
                         <div class="quiz-header">
-                            <h2>📋 Review Answers</h2>
-                            <button id="close-quiz-review" class="close-btn">✕</button>
+                            <h2><i class="bi bi-clipboard-check-fill"></i> Review Answers</h2>
+                            <button id="close-quiz-review" class="close-btn"><i class="bi bi-x-lg"></i></button>
                         </div>
                         <div id="quiz-review-container" class="quiz-review-container">
                             <!-- Review items will be rendered here -->
                         </div>
                         <div class="review-actions">
-                            <button id="back-to-results-btn" class="btn primary">
-                                <span>←</span> Back to Results
+                            <button id="back-to-results-btn" class="btn primary"><i class="bi bi-arrow-left"></i> Back to Results
                             </button>
                         </div>
                     </div>
@@ -1234,13 +1229,13 @@
                 <div class="glass-specular"></div>
                 <div class="glass-content modal-content">
                     <div class="modal-header">
-                        <h2>⚙️ Settings</h2>
-                        <button id="closeSettings" class="close-btn">✕</button>
+                        <h2><i class="bi bi-gear-fill"></i> Settings</h2>
+                        <button id="closeSettings" class="close-btn"><i class="bi bi-x-lg"></i></button>
                     </div>
                     <div class="modal-body">
                         <!-- API Settings -->
                         <div class="settings-section">
-                            <h3>🔑 API Configuration</h3>
+                            <h3><i class="bi bi-key-fill"></i> API Configuration</h3>
                             <div class="setting-item">
                                 <label for="gemini-api-key">Gemini API Key:</label>
                                 <input type="password" id="gemini-api-key" placeholder="Enter your Gemini API key">
@@ -1249,7 +1244,7 @@
 
                         <!-- Live Mode Settings -->
                         <div class="settings-section">
-                            <h3>🎙️ Live Conversation Mode</h3>
+                            <h3><i class="bi bi-mic-fill"></i> Live Conversation Mode</h3>
                             <div class="setting-item toggle-setting">
                                 <label for="live-mode-toggle">
                                     <span>Enable Live Mode</span>
@@ -1262,7 +1257,7 @@
                             </div>
                             <div id="live-mode-options" class="live-mode-options hidden">
                                 <p style="color: #888; font-size: 0.85rem; margin: 0;">
-                                    💡 Live voice auto-matches your teacher:<br>
+                                    <i class="bi bi-lightbulb-fill"></i> Live voice auto-matches your teacher:<br>
                                     • Sir → Charon (Male voice)<br>
                                     • Ma'am → Aoede (Female voice)<br>
                                     <em>Responds in any language you speak!</em>
@@ -1272,11 +1267,11 @@
 
                         <!-- Voice Settings (Edge TTS - 100+ Countries) -->
                         <div class="settings-section">
-                            <h3>🎙️ Voice Settings (Free HD Neural Voices)</h3>
+                            <h3><i class="bi bi-mic-fill"></i> Voice Settings (Free HD Neural Voices)</h3>
 
                             <!-- Speech Input Language (Web Speech API) -->
                             <div class="setting-item">
-                                <label for="speech-input-lang">🎤 Speech Input (Your voice):</label>
+                                <label for="speech-input-lang"><i class="bi bi-mic"></i> Speech Input (Your voice):</label>
                                 <select id="speech-input-lang">
                                     <optgroup label="🇧🇩 South Asian">
                                         <option value="bn-BD" selected>Bengali (Bangladesh)</option>
@@ -1323,7 +1318,7 @@
 
                             <!-- TTS Voice Selection (Edge TTS Output) -->
                             <div class="setting-item">
-                                <label for="voice-language">🔊 Teacher Voice (TTS Output):</label>
+                                <label for="voice-language"><i class="bi bi-volume-up-fill"></i> Teacher Voice (TTS Output):</label>
                                 <select id="voice-language">
                                     <optgroup label="🇧🇩 Bengali Voices">
                                         <option value="bn-BD-NabanitaNeural" selected>bn-BD-NabanitaNeural (Female)

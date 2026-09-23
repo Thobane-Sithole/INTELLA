@@ -6,6 +6,77 @@
 /* Google Fonts Import */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+/* ===================================
+   Bootstrap Icons — Integration
+   =================================== */
+
+/* All bi icons inherit their container's font-size and color by default */
+[class^="bi-"],
+[class*=" bi-"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+/* Icon sizing in named slots */
+.btn-icon .bi,
+.btn-icon.bi           { font-size: 1.1rem; }
+
+.logo-icon .bi         { font-size: 1.5rem; color: #a78bfa; filter: drop-shadow(0 0 8px rgba(167,139,250,.6)); }
+.logo-icon.pulse .bi   { animation: pulse-glow 2s ease-in-out infinite; }
+
+.widget-icon .bi       { font-size: 1rem; opacity: .9; }
+.step-icon .bi         { font-size: 2rem; }
+.level-icon .bi        { font-size: 1.6rem; }
+.dept-icon .bi         { font-size: 1.5rem; }
+.stream-icon .bi       { font-size: 1.5rem; }
+.quiz-icon .bi         { font-size: 1.6rem; }
+.stat-icon .bi         { font-size: 1.1rem; }
+.preview-icon .bi      { font-size: 1rem; }
+.prompt-icon .bi       { font-size: 2rem; opacity: .7; }
+.search-icon .bi       { font-size: .9rem; opacity: .7; }
+.welcome-avatar .bi    { font-size: 2.5rem; }
+
+/* Close buttons */
+.close-btn .bi,
+.close-panel-btn .bi,
+.quiz-overlay-close .bi { font-size: 1rem; }
+
+/* Inline icons in headings and labels */
+h2 > .bi,
+h3 > .bi,
+label > .bi { margin-right: 0.35em; vertical-align: -0.1em; }
+
+/* Input-area inline icons (send, mic, stop, attach) */
+.send-btn .bi,
+.voice-btn .bi,
+.upload-btn .bi { font-size: 1.1rem; }
+
+/* Level icon colors — conveying progression */
+.level-btn[data-level="primary"]          .bi { color: #fbbf24; }
+.level-btn[data-level="middle"]           .bi { color: #34d399; }
+.level-btn[data-level="secondary"]        .bi { color: #60a5fa; }
+.level-btn[data-level="higher_secondary"] .bi { color: #fb923c; }
+.level-btn[data-level="undergraduate"]    .bi { color: #c084fc; }
+.level-btn[data-level="postgraduate"]     .bi { color: #f472b6; }
+
+/* Stat icons — colored feedback */
+.stat-item.correct .bi { color: #22c55e; }
+.stat-item.wrong   .bi { color: #ef4444; }
+.stat-item.time    .bi { color: #facc15; }
+
+/* Difficulty icons */
+.difficulty-btn[data-difficulty="easy"]   .bi { color: #22c55e; }
+.difficulty-btn[data-difficulty="medium"] .bi { color: #facc15; }
+.difficulty-btn[data-difficulty="hard"]   .bi { color: #ef4444; }
+
+@keyframes pulse-glow {
+    0%, 100% { filter: drop-shadow(0 0 6px rgba(167,139,250,.5)); }
+    50%       { filter: drop-shadow(0 0 16px rgba(167,139,250,.9)); }
+}
+
 /* CSS Variables - Exact Apple Liquid Glass */
 :root {
     --lg-bg-color: rgba(255, 255, 255, 0.25);
