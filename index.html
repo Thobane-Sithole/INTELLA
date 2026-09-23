@@ -1501,8 +1501,24 @@
         </div>
     </div>
 
-    <!-- Firebase Configuration -->
-    <script type="module" src="firebase-config.js"></script>
+    <!-- Google Identity Services (for Google Sign-In without Firebase)
+         Replace YOUR_GOOGLE_CLIENT_ID with your OAuth 2.0 Client ID from
+         https://console.cloud.google.com → APIs & Services → Credentials -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        window.addEventListener('load', function () {
+            const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'; // ← paste your client ID here
+            if (!CLIENT_ID || CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID') return;
+            google.accounts.id.initialize({
+                client_id: CLIENT_ID,
+                callback: function (response) {
+                    // Forward the credential to auth.js handler
+                    import('./auth.js').then(m => m.handleGoogleCredential(response.credential));
+                },
+                auto_select: false,
+            });
+        });
+    </script>
 
     <!-- Edge TTS Helper (Loaded dynamically by app.js) -->
     <script src="./lib/edge-tts-helper.js"></script>
