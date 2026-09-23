@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INTELLA - AI Virtual Teacher</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+
+    <!-- ES Module Shims for Import Map Support -->
+    <script async src="https://cdn.jsdelivr.net/npm/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+
+    <!-- Import Map for ES Modules (local libraries) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "marked": "./lib/marked.esm.js",
+            "dompurify": "./lib/purify.es.mjs",
+            "three": "./lib/three/three.module.js",
+            "three/addons/": "./lib/three/examples/jsm/",
+            "three/examples/jsm/": "./lib/three/examples/jsm/"
+        }
+    }
+    </script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Instant Auth UI Script (runs before page renders) -->
+    <script>
+        // Check cached auth state immediately to prevent "Login" flash
+        (function () {
+            try {
+                var cached = localStorage.getItem('intella_auth_cache');
+                if (cached) {
+                    var data = JSON.parse(cached);
+                    // Cache is valid for 7 days
+                    if (Date.now() - data.cachedAt < 7 * 24 * 60 * 60 * 1000 && data.isLoggedIn) {
+                        // Add class to body so CSS can handle initial state
+                        document.documentElement.classList.add('user-logged-in');
+                        // Store for later use
+                        window.__cachedAuth = data;
+                    }
+                }
+            } catch (e) { }
+        })();
+    </script>
+</head>
+
+<body>
+    <!-- SVG Filters for Apple Liquid Glass Effect -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="position: absolute; width: 0; height: 0;">
+        <filter id="lensFilter" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+            <feComponentTransfer in="SourceAlpha" result="alpha">
+                <feFuncA type="identity" />
+            </feComponentTransfer>
+            <feGaussianBlur in="alpha" stdDeviation="50" result="blur" />
+            <feDisplacementMap in="SourceGraphic" in2="blur" scale="50" xChannelSelector="A" yChannelSelector="A" />
+        </filter>
+        <!-- Gradient for Quiz Score Circle -->
+        <defs>
+            <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#9333ea;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <!-- Login/Signup Modal - hidden by default, user clicks Login button to show -->
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="auth-modal-title">Welcome to INTELLA</h2>
+                <button id="close-auth" class="close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="auth-forms">
+                    <!-- Login Form -->
+                    <div id="login-form" class="auth-form">
+                        <p class="auth-subtitle">Sign in to continue learning</p>
+                        <input type="email" id="login-email" placeholder="Email" required>
+                        <input type="password" id="login-password" placeholder="Password" required>
+                        <button id="login-btn" class="btn primary">Sign In</button>
+                        <!-- Google login disabled - using email/password only
+                        <button id="google-login-btn" class="btn secondary">
+                            <span>🔐</span> Sign in with Google
+                        </button>
+                        -->
+                        <p class="auth-switch">
+                            Don't have an account? <a href="#" id="show-signup">Sign up</a>
+                        </p>
+                    </div>
+
+                    <!-- Signup Form -->
+                    <div id="signup-form" class="auth-form hidden">
+                        <p class="auth-subtitle">Create your account</p>
+                        <input type="text" id="signup-name" placeholder="Full Name" required>
+                        <input type="email" id="signup-email" placeholder="Email" required>
+                        <input type="password" id="signup-password" placeholder="Password (min 6 characters)" required>
+                        <select id="signup-grade" required>
+                            <option value="">Select your class...</option>
+                            <option value="1">Class 1</option>
+                            <option value="2">Class 2</option>
+                            <option value="3">Class 3</option>
+                            <option value="4">Class 4</option>
+                            <option value="5">Class 5</option>
+                            <option value="6">Class 6</option>
+                            <option value="7">Class 7</option>
+                            <option value="8">Class 8</option>
+                            <option value="9">Class 9</option>
+                            <option value="10">Class 10 (SSC)</option>
+                            <option value="11">Class 11 (HSC 1st Year)</option>
+                            <option value="12">Class 12 (HSC 2nd Year)</option>
+                        </select>
+                        <button id="signup-btn" class="btn primary">Create Account</button>
+                        <!-- Google signup disabled - using email/password only
+                        <button id="google-signup-btn" class="btn secondary">
+                            <span>🔐</span> Sign up with Google
+                        </button>
+                        -->
+                        <p class="auth-switch">
+                            Already have an account? <a href="#" id="show-login">Sign in</a>
+                        </p>
+                    </div>
+
+                    <!-- User Profile Display -->
+                    <div id="user-profile" class="user-profile hidden">
+                        <div class="profile-avatar" id="profile-avatar-container">
+                            <img id="profile-avatar-img" src="" alt="Profile"
+                                style="display:none; width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                            <span id="profile-avatar-text">👤</span>
+                        </div>
+                        <button id="change-profile-pic-btn" class="btn-link small">Change Photo</button>
+                        <input type="file" id="change-profile-pic-input" accept="image/*" hidden>
+                        <h3 id="profile-name">Loading...</h3>
+                        <p id="profile-email">user@email.com</p>
+                        <p id="profile-grade">Class 10</p>
+                        <div class="profile-stats">
+                            <div class="stat">
+                                <span class="stat-value" id="profile-points">0</span>
+                                <span class="stat-label">Points</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value" id="profile-streak">0</span>
+                                <span class="stat-label">Day Streak</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value" id="profile-topics">0</span>
+                                <span class="stat-label">Topics</span>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button id="edit-profile-btn" class="btn primary">✏️ Edit Profile</button>
+                            <button id="link-account-btn" class="btn primary hidden">🔗 Link Account</button>
+                            <button id="logout-btn" class="btn secondary">Sign Out</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app">
+        <!-- Full Screen Avatar Background -->
+        <div class="avatar-fullscreen">
+            <!-- Animated Background -->
+            <div class="bg-animation">
+                <div class="gradient-orb orb-1"></div>
+                <div class="gradient-orb orb-2"></div>
+                <div class="gradient-orb orb-3"></div>
+                <div class="particle-field" id="particle-field"></div>
+            </div>
+
+            <!-- Avatar Container - Full Body -->
+            <div id="avatar-container"></div>
+
+            <!-- Magic Image Overlay - Shows on left side during image generation -->
+            <div id="magic-image-overlay" class="magic-image-overlay hidden">
+                <div class="magic-image-frame">
+                    <div class="magic-glow"></div>
+                    <img id="magic-image" src="" alt="Generated visualization">
+                    <div class="magic-sparkles">
+                        <span>✨</span><span>✨</span><span>✨</span><span>✨</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Magic Quiz Overlay - Shows on left side like magic image -->
+            <div id="magic-quiz-overlay" class="magic-quiz-overlay hidden">
+                <div class="magic-quiz-frame glass-container">
+                    <div class="glass-filter"></div>
+                    <div class="glass-overlay"></div>
+                    <div class="glass-specular"></div>
+                    <div class="glass-content quiz-overlay-content">
+                        <!-- Quiz Header -->
+                        <div class="quiz-overlay-header">
+                            <div class="quiz-overlay-title">
+                                <span class="quiz-icon">📝</span>
+                                <div>
+                                    <h3 id="quiz-overlay-subject">Quiz</h3>
+                                    <p id="quiz-overlay-topic">Topic</p>
+                                </div>
+                            </div>
+                            <div class="quiz-overlay-stats">
+                                <span class="quiz-overlay-progress"><span id="quiz-overlay-current">1</span>/<span
+                                        id="quiz-overlay-total">10</span></span>
+                                <span class="quiz-overlay-score">🎯 <span id="quiz-overlay-score">0</span></span>
+                            </div>
+                            <button id="close-quiz-overlay" class="quiz-overlay-close">✕</button>
+                        </div>
+
+                        <!-- Quiz Question Area -->
+                        <div class="quiz-overlay-question-area">
+                            <div class="quiz-overlay-question-number" id="quiz-overlay-q-num">Question 1</div>
+                            <div class="quiz-overlay-question-text" id="quiz-overlay-q-text">Loading question...</div>
+                        </div>
+
+                        <!-- Quiz Options -->
+                        <div class="quiz-overlay-options" id="quiz-overlay-options">
+                            <!-- Options will be rendered here -->
+                        </div>
+
+                        <!-- Quiz Navigation -->
+                        <div class="quiz-overlay-nav">
+                            <button id="quiz-overlay-prev" class="quiz-nav-btn" disabled>← Prev</button>
+                            <div class="quiz-overlay-dots" id="quiz-overlay-dots"></div>
+                            <button id="quiz-overlay-next" class="quiz-nav-btn">Next →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Results Overlay -->
+            <div id="quiz-results-overlay" class="magic-quiz-overlay hidden">
+                <div class="magic-quiz-frame results-frame glass-container">
+                    <div class="glass-filter"></div>
+                    <div class="glass-overlay"></div>
+                    <div class="glass-specular"></div>
+                    <div class="glass-content quiz-results-content">
+                        <h2>📊 Quiz Complete!</h2>
+                        <div class="results-score-big">
+                            <span id="results-score-percent">0%</span>
+                            <span id="results-grade-letter">F</span>
+                        </div>
+                        <div class="results-details">
+                            <div class="result-stat"><span>✅</span> <span id="results-correct-count">0</span> Correct
+                            </div>
+                            <div class="result-stat"><span>❌</span> <span id="results-wrong-count">0</span> Wrong</div>
+                            <div class="result-stat"><span>⏱️</span> <span id="results-time-taken">0:00</span></div>
+                        </div>
+                        <p id="results-message-text" class="results-message">Great job!</p>
+                        <div class="results-actions">
+                            <button id="quiz-review-btn" class="btn secondary">📋 Review</button>
+                            <button id="quiz-close-btn" class="btn primary">✓ Done</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Avatar Loading State -->
+            <div id="avatar-loading" class="avatar-loading">
+                <div class="loading-spinner"></div>
+                <p>Initializing AI Teacher...</p>
+            </div>
+        </div>
+
+        <!-- Floating Glass Header -->
+        <header class="glass-header">
+            <div class="glass-container">
+                <div class="glass-filter"></div>
+                <div class="glass-overlay"></div>
+                <div class="glass-specular"></div>
+                <div class="glass-content header-content">
+                    <div class="logo">
+                        <span class="logo-icon">🧠</span>
+                        <h1>INTELLA</h1>
+                    </div>
+                    <div class="header-center">
+                        <div id="connection-status" class="connection-indicator online">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Connected</span>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <!-- Progress Widget in Header -->
+                        <div id="progress-widget" class="header-progress-widget" title="Your Learning Progress">
+                            <span class="widget-icon">📊</span>
+                            <div class="mini-progress-container">
+                                <div class="mini-progress">
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                </div>
+                                <span class="progress-stats">0 topics</span>
+                            </div>
+                        </div>
+                        <button id="library-btn" class="glass-btn" title="Textbook Library">
+                            <span class="btn-icon">📚</span>
+                        </button>
+                        <button id="credits-btn" class="glass-btn" title="Credits & Subscription">
+                            <span class="btn-icon">💎</span>
+                            <span id="credits-btn-text" class="btn-text">Credits</span>
+                        </button>
+                        <button id="user-btn" class="glass-btn user-btn-container" title="Account">
+                            <span id="user-btn-icon" class="btn-icon">👤</span>
+                            <img id="user-btn-avatar" class="user-btn-avatar hidden" src="" alt="Profile">
+                            <span id="user-btn-text" class="btn-text">Login</span>
+                        </button>
+                        <button id="toggle-chat" class="glass-btn" title="Toggle Chat Panel">
+                            <span class="btn-icon">💬</span>
+                        </button>
+                        <button id="openSettings" class="glass-btn" title="Settings">
+                            <span class="btn-icon">⚙️</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat History Sidebar (Like Claude/ChatGPT) -->
+        <aside id="chat-history-sidebar" class="chat-history-sidebar hidden">
+            <div class="glass-container sidebar-container">
+                <div class="glass-filter"></div>
+                <div class="glass-overlay"></div>
+                <div class="glass-specular"></div>
+                <div class="glass-content sidebar-content">
+                    <!-- Sidebar Header -->
+                    <div class="sidebar-header">
+                        <h3>💬 Chat History</h3>
+                        <button id="close-history-sidebar" class="close-panel-btn" title="Close">
+                            <span>✕</span>
+                        </button>
+                    </div>
+
+                    <!-- New Chat Button -->
+                    <button id="new-chat-btn" class="new-chat-btn">
+                        <span class="btn-icon">✨</span>
+                        <span>New Chat</span>
+                    </button>
+
+                    <!-- Search Chats -->
+                    <div class="chat-search">
+                        <input type="text" id="chat-search-input" placeholder="🔍 Search chats...">
+                    </div>
+
+                    <!-- Chat History List -->
+                    <div id="chat-history-list" class="chat-history-list">
+                        <div class="history-loading">
+                            <div class="loading-spinner small"></div>
+                            <span>Loading chats...</span>
+                        </div>
+                    </div>
+
+                    <!-- Login Prompt (shown when not logged in) -->
+                    <div id="history-login-prompt" class="history-login-prompt hidden">
+                        <span class="prompt-icon">🔐</span>
+                        <p>Sign in to save and view your chat history</p>
+                        <button id="history-login-btn" class="btn primary">Sign In</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Holographic Chat Panel (Collapsible) -->
+        <aside id="chat-panel" class="hologram-panel">
+            <div class="glass-container panel-container">
+                <div class="glass-filter"></div>
+                <div class="glass-overlay"></div>
+                <div class="glass-specular"></div>
+                <div class="hologram-border"></div>
+
+                <div class="glass-content panel-content">
+                    <!-- Panel Header -->
+                    <div class="panel-header">
+                        <button id="toggle-history-sidebar" class="history-toggle-btn" title="Chat History">
+                            <span>📜</span>
+                        </button>
+                        <div class="mode-selector">
+                            <button class="mode-btn active" data-mode="chat" title="Chat">
+                                <span>💬</span>
+                            </button>
+                            <button class="mode-btn" data-mode="curriculum" title="Curriculum">
+                                <span>📚</span>
+                            </button>
+                            <button class="mode-btn" data-mode="file" title="File Analysis">
+                                <span>📁</span>
+                            </button>
+                            <button class="mode-btn" data-mode="research" title="Research">
+                                <span>🔬</span>
+                            </button>
+                        </div>
+                        <button id="close-chat" class="close-panel-btn">
+                            <span>✕</span>
+                        </button>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="welcome-message">
+                            <div class="welcome-avatar">👋</div>
+                            <h3>Welcome to INTELLA!</h3>
+                            <p>Ask me anything about your studies. I'm here to help you learn!</p>
+                        </div>
+                    </div>
+
+                    <!-- File Preview Area -->
+                    <div id="file-preview" class="file-preview hidden">
+                        <div class="preview-header">
+                            <span class="preview-icon">📄</span>
+                            <span id="file-name" class="file-name">No file</span>
+                            <button id="clear-file" class="clear-file-btn">✕</button>
+                        </div>
+                        <div id="preview-content" class="preview-content"></div>
+                    </div>
+
+                    <!-- Input Area -->
+                    <div class="input-area">
+                        <div class="input-container">
+                            <label id="file-upload-btn" class="upload-btn" title="Upload file">
+                                <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt" hidden>
+                                <span>📎</span>
+                            </label>
+                            <textarea id="user-input" placeholder="Ask your teacher anything..." rows="1"></textarea>
+                            <button id="send-btn" class="send-btn" title="Send message">
+                                <span>▶</span>
+                            </button>
+                        </div>
+                        <div class="voice-controls">
+                            <div class="lang-dropdown-container">
+                                <button id="lang-switch-btn" class="voice-btn lang"
+                                    title="Select Speech Input Language">
+                                    <span id="current-lang">EN</span>
+                                </button>
+                                <div id="lang-dropdown" class="lang-dropdown hidden">
+                                    <!-- Apple Liquid Glass Layers -->
+                                    <div class="glass-filter"></div>
+                                    <div class="glass-overlay"></div>
+                                    <div class="glass-specular"></div>
+                                    <div class="glass-content">
+                                        <div class="lang-search">
+                                            <input type="text" id="lang-search-input"
+                                                placeholder="🔍 Search 118+ languages...">
+                                        </div>
+                                        <div class="lang-list">
+                                            <div class="lang-group" data-group="popular">
+                                                <div class="lang-group-title">⭐ Popular</div>
+                                                <div class="lang-item" data-lang="en-US">🇺🇸 English (US)</div>
+                                                <div class="lang-item" data-lang="bn-BD">🇧🇩 Bengali (Bangladesh)</div>
+                                                <div class="lang-item" data-lang="hi-IN">🇮🇳 Hindi</div>
+                                                <div class="lang-item" data-lang="ar-SA">🇸🇦 Arabic</div>
+                                                <div class="lang-item" data-lang="es-ES">🇪🇸 Spanish</div>
+                                                <div class="lang-item" data-lang="fr-FR">🇫🇷 French</div>
+                                                <div class="lang-item" data-lang="zh-CN">🇨🇳 Chinese</div>
+                                            </div>
+                                            <div class="lang-group" data-group="south-asian">
+                                                <div class="lang-group-title">🇮🇳 South Asian (16)</div>
+                                                <div class="lang-item" data-lang="bn-BD">🇧🇩 Bengali (Bangladesh)</div>
+                                                <div class="lang-item" data-lang="bn-IN">🇮🇳 Bengali (India)</div>
+                                                <div class="lang-item" data-lang="hi-IN">🇮🇳 Hindi</div>
+                                                <div class="lang-item" data-lang="ta-IN">🇮🇳 Tamil (India)</div>
+                                                <div class="lang-item" data-lang="ta-MY">🇲🇾 Tamil (Malaysia)</div>
+                                                <div class="lang-item" data-lang="ta-SG">🇸🇬 Tamil (Singapore)</div>
+                                                <div class="lang-item" data-lang="ta-LK">🇱🇰 Tamil (Sri Lanka)</div>
+                                                <div class="lang-item" data-lang="te-IN">🇮🇳 Telugu</div>
+                                                <div class="lang-item" data-lang="mr-IN">🇮🇳 Marathi</div>
+                                                <div class="lang-item" data-lang="gu-IN">🇮🇳 Gujarati</div>
+                                                <div class="lang-item" data-lang="kn-IN">🇮🇳 Kannada</div>
+                                                <div class="lang-item" data-lang="ml-IN">🇮🇳 Malayalam</div>
+                                                <div class="lang-item" data-lang="ne-NP">🇳🇵 Nepali</div>
+                                                <div class="lang-item" data-lang="si-LK">🇱🇰 Sinhala</div>
+                                                <div class="lang-item" data-lang="ur-PK">🇵🇰 Urdu (Pakistan)</div>
+                                                <div class="lang-item" data-lang="ur-IN">🇮🇳 Urdu (India)</div>
+                                            </div>
+                                            <div class="lang-group" data-group="english">
+                                                <div class="lang-group-title">🇺🇸 English (14)</div>
+                                                <div class="lang-item" data-lang="en-US">🇺🇸 English (US)</div>
+                                                <div class="lang-item" data-lang="en-GB">🇬🇧 English (UK)</div>
+                                                <div class="lang-item" data-lang="en-AU">🇦🇺 English (Australia)</div>
+                                                <div class="lang-item" data-lang="en-CA">🇨🇦 English (Canada)</div>
+                                                <div class="lang-item" data-lang="en-IN">🇮🇳 English (India)</div>
+                                                <div class="lang-item" data-lang="en-IE">🇮🇪 English (Ireland)</div>
+                                                <div class="lang-item" data-lang="en-NZ">🇳🇿 English (New Zealand)
+                                                </div>
+                                                <div class="lang-item" data-lang="en-SG">🇸🇬 English (Singapore)</div>
+                                                <div class="lang-item" data-lang="en-ZA">🇿🇦 English (South Africa)
+                                                </div>
+                                                <div class="lang-item" data-lang="en-PH">🇵🇭 English (Philippines)
+                                                </div>
+                                                <div class="lang-item" data-lang="en-HK">🇭🇰 English (Hong Kong)</div>
+                                                <div class="lang-item" data-lang="en-KE">🇰🇪 English (Kenya)</div>
+                                                <div class="lang-item" data-lang="en-NG">🇳🇬 English (Nigeria)</div>
+                                                <div class="lang-item" data-lang="en-TZ">🇹🇿 English (Tanzania)</div>
+                                            </div>
+                                            <div class="lang-group" data-group="european">
+                                                <div class="lang-group-title">🇪🇺 European (45)</div>
+                                                <div class="lang-item" data-lang="fr-FR">🇫🇷 French (France)</div>
+                                                <div class="lang-item" data-lang="fr-CA">🇨🇦 French (Canada)</div>
+                                                <div class="lang-item" data-lang="fr-BE">🇧🇪 French (Belgium)</div>
+                                                <div class="lang-item" data-lang="fr-CH">🇨🇭 French (Switzerland)</div>
+                                                <div class="lang-item" data-lang="de-DE">🇩🇪 German (Germany)</div>
+                                                <div class="lang-item" data-lang="de-AT">🇦🇹 German (Austria)</div>
+                                                <div class="lang-item" data-lang="de-CH">🇨🇭 German (Switzerland)</div>
+                                                <div class="lang-item" data-lang="es-ES">🇪🇸 Spanish (Spain)</div>
+                                                <div class="lang-item" data-lang="es-MX">🇲🇽 Spanish (Mexico)</div>
+                                                <div class="lang-item" data-lang="es-AR">🇦🇷 Spanish (Argentina)</div>
+                                                <div class="lang-item" data-lang="es-CO">🇨🇴 Spanish (Colombia)</div>
+                                                <div class="lang-item" data-lang="es-CL">🇨🇱 Spanish (Chile)</div>
+                                                <div class="lang-item" data-lang="es-PE">🇵🇪 Spanish (Peru)</div>
+                                                <div class="lang-item" data-lang="es-US">🇺🇸 Spanish (US)</div>
+                                                <div class="lang-item" data-lang="es-VE">🇻🇪 Spanish (Venezuela)</div>
+                                                <div class="lang-item" data-lang="it-IT">🇮🇹 Italian</div>
+                                                <div class="lang-item" data-lang="pt-BR">🇧🇷 Portuguese (Brazil)</div>
+                                                <div class="lang-item" data-lang="pt-PT">🇵🇹 Portuguese (Portugal)
+                                                </div>
+                                                <div class="lang-item" data-lang="nl-NL">🇳🇱 Dutch (Netherlands)</div>
+                                                <div class="lang-item" data-lang="nl-BE">🇧🇪 Dutch (Belgium)</div>
+                                                <div class="lang-item" data-lang="pl-PL">🇵🇱 Polish</div>
+                                                <div class="lang-item" data-lang="ru-RU">🇷🇺 Russian</div>
+                                                <div class="lang-item" data-lang="uk-UA">🇺🇦 Ukrainian</div>
+                                                <div class="lang-item" data-lang="cs-CZ">🇨🇿 Czech</div>
+                                                <div class="lang-item" data-lang="sk-SK">🇸🇰 Slovak</div>
+                                                <div class="lang-item" data-lang="hu-HU">🇭🇺 Hungarian</div>
+                                                <div class="lang-item" data-lang="ro-RO">🇷🇴 Romanian</div>
+                                                <div class="lang-item" data-lang="bg-BG">🇧🇬 Bulgarian</div>
+                                                <div class="lang-item" data-lang="hr-HR">🇭🇷 Croatian</div>
+                                                <div class="lang-item" data-lang="sr-RS">🇷🇸 Serbian</div>
+                                                <div class="lang-item" data-lang="sl-SI">🇸🇮 Slovenian</div>
+                                                <div class="lang-item" data-lang="bs-BA">🇧🇦 Bosnian</div>
+                                                <div class="lang-item" data-lang="mk-MK">🇲🇰 Macedonian</div>
+                                                <div class="lang-item" data-lang="el-GR">🇬🇷 Greek</div>
+                                                <div class="lang-item" data-lang="tr-TR">🇹🇷 Turkish</div>
+                                                <div class="lang-item" data-lang="da-DK">🇩🇰 Danish</div>
+                                                <div class="lang-item" data-lang="nb-NO">🇳🇴 Norwegian</div>
+                                                <div class="lang-item" data-lang="sv-SE">🇸🇪 Swedish</div>
+                                                <div class="lang-item" data-lang="fi-FI">🇫🇮 Finnish</div>
+                                                <div class="lang-item" data-lang="et-EE">🇪🇪 Estonian</div>
+                                                <div class="lang-item" data-lang="lv-LV">🇱🇻 Latvian</div>
+                                                <div class="lang-item" data-lang="lt-LT">🇱🇹 Lithuanian</div>
+                                                <div class="lang-item" data-lang="is-IS">🇮🇸 Icelandic</div>
+                                                <div class="lang-item" data-lang="ga-IE">🇮🇪 Irish</div>
+                                                <div class="lang-item" data-lang="cy-GB">🏴󠁧󠁢󠁷󠁬󠁳󠁿 Welsh</div>
+                                                <div class="lang-item" data-lang="mt-MT">🇲🇹 Maltese</div>
+                                                <div class="lang-item" data-lang="ca-ES">🇪🇸 Catalan</div>
+                                                <div class="lang-item" data-lang="gl-ES">🇪🇸 Galician</div>
+                                                <div class="lang-item" data-lang="sq-AL">🇦🇱 Albanian</div>
+                                            </div>
+                                            <div class="lang-group" data-group="central-asian">
+                                                <div class="lang-group-title">🌍 Central Asian (5)</div>
+                                                <div class="lang-item" data-lang="ka-GE">🇬🇪 Georgian</div>
+                                                <div class="lang-item" data-lang="az-AZ">🇦🇿 Azerbaijani</div>
+                                                <div class="lang-item" data-lang="kk-KZ">🇰🇿 Kazakh</div>
+                                                <div class="lang-item" data-lang="uz-UZ">🇺🇿 Uzbek</div>
+                                                <div class="lang-item" data-lang="mn-MN">🇲🇳 Mongolian</div>
+                                            </div>
+                                            <div class="lang-group" data-group="east-asian">
+                                                <div class="lang-group-title">🇨🇳 East Asian (5)</div>
+                                                <div class="lang-item" data-lang="zh-CN">🇨🇳 Chinese (Mandarin)</div>
+                                                <div class="lang-item" data-lang="zh-TW">🇹🇼 Chinese (Taiwan)</div>
+                                                <div class="lang-item" data-lang="zh-HK">🇭🇰 Chinese (HK)</div>
+                                                <div class="lang-item" data-lang="ja-JP">🇯🇵 Japanese</div>
+                                                <div class="lang-item" data-lang="ko-KR">🇰🇷 Korean</div>
+                                            </div>
+                                            <div class="lang-group" data-group="southeast-asian">
+                                                <div class="lang-group-title">🇹🇭 Southeast Asian (10)</div>
+                                                <div class="lang-item" data-lang="vi-VN">🇻🇳 Vietnamese</div>
+                                                <div class="lang-item" data-lang="th-TH">🇹🇭 Thai</div>
+                                                <div class="lang-item" data-lang="id-ID">🇮🇩 Indonesian</div>
+                                                <div class="lang-item" data-lang="ms-MY">🇲🇾 Malay</div>
+                                                <div class="lang-item" data-lang="fil-PH">🇵🇭 Filipino</div>
+                                                <div class="lang-item" data-lang="km-KH">🇰🇭 Khmer</div>
+                                                <div class="lang-item" data-lang="lo-LA">🇱🇦 Lao</div>
+                                                <div class="lang-item" data-lang="my-MM">🇲🇲 Burmese</div>
+                                                <div class="lang-item" data-lang="jv-ID">🇮🇩 Javanese</div>
+                                                <div class="lang-item" data-lang="su-ID">🇮🇩 Sundanese</div>
+                                            </div>
+                                            <div class="lang-group" data-group="middle-east">
+                                                <div class="lang-group-title">🇸🇦 Middle East & Arabic (19)</div>
+                                                <div class="lang-item" data-lang="ar-SA">🇸🇦 Arabic (Saudi)</div>
+                                                <div class="lang-item" data-lang="ar-EG">🇪🇬 Arabic (Egypt)</div>
+                                                <div class="lang-item" data-lang="ar-AE">🇦🇪 Arabic (UAE)</div>
+                                                <div class="lang-item" data-lang="ar-IQ">🇮🇶 Arabic (Iraq)</div>
+                                                <div class="lang-item" data-lang="ar-JO">🇯🇴 Arabic (Jordan)</div>
+                                                <div class="lang-item" data-lang="ar-KW">🇰🇼 Arabic (Kuwait)</div>
+                                                <div class="lang-item" data-lang="ar-LB">🇱🇧 Arabic (Lebanon)</div>
+                                                <div class="lang-item" data-lang="ar-MA">🇲🇦 Arabic (Morocco)</div>
+                                                <div class="lang-item" data-lang="ar-QA">🇶🇦 Arabic (Qatar)</div>
+                                                <div class="lang-item" data-lang="ar-DZ">🇩🇿 Arabic (Algeria)</div>
+                                                <div class="lang-item" data-lang="ar-BH">🇧🇭 Arabic (Bahrain)</div>
+                                                <div class="lang-item" data-lang="ar-LY">🇱🇾 Arabic (Libya)</div>
+                                                <div class="lang-item" data-lang="ar-OM">🇴🇲 Arabic (Oman)</div>
+                                                <div class="lang-item" data-lang="ar-SY">🇸🇾 Arabic (Syria)</div>
+                                                <div class="lang-item" data-lang="ar-TN">🇹🇳 Arabic (Tunisia)</div>
+                                                <div class="lang-item" data-lang="ar-YE">🇾🇪 Arabic (Yemen)</div>
+                                                <div class="lang-item" data-lang="he-IL">🇮🇱 Hebrew</div>
+                                                <div class="lang-item" data-lang="fa-IR">🇮🇷 Persian</div>
+                                                <div class="lang-item" data-lang="ps-AF">🇦🇫 Pashto</div>
+                                            </div>
+                                            <div class="lang-group" data-group="african">
+                                                <div class="lang-group-title">🌍 African (6)</div>
+                                                <div class="lang-item" data-lang="af-ZA">🇿🇦 Afrikaans</div>
+                                                <div class="lang-item" data-lang="am-ET">🇪🇹 Amharic</div>
+                                                <div class="lang-item" data-lang="sw-KE">🇰🇪 Swahili (Kenya)</div>
+                                                <div class="lang-item" data-lang="sw-TZ">🇹🇿 Swahili (Tanzania)</div>
+                                                <div class="lang-item" data-lang="so-SO">🇸🇴 Somali</div>
+                                                <div class="lang-item" data-lang="zu-ZA">🇿🇦 Zulu</div>
+                                            </div>
+                                            <div class="lang-group" data-group="other">
+                                                <div class="lang-group-title">🌐 Other (3)</div>
+                                                <div class="lang-item" data-lang="iu-Cans-CA">🇨🇦 Inuktitut (Syllabics)
+                                                </div>
+                                                <div class="lang-item" data-lang="iu-Latn-CA">🇨🇦 Inuktitut (Latin)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="mic-btn" class="voice-btn" title="Voice input">
+                                <span>🎙️</span>
+                            </button>
+                            <button id="live-mic-btn" class="voice-btn live-btn" title="Live conversation">
+                                <span class="live-dot"></span>
+                                <svg class="live-mic-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                                    <line x1="12" y1="19" x2="12" y2="23" />
+                                    <line x1="8" y1="23" x2="16" y2="23" />
+                                </svg>
+                                <span class="live-label">LIVE</span>
+                            </button>
+                            <button id="stop-btn" class="voice-btn stop" title="Stop speaking">
+                                <span>⏹️</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Onboarding Modal -->
+        <div id="onboarding-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="glass-container modal-container">
+                <div class="glass-filter"></div>
+                <div class="glass-overlay"></div>
+                <div class="glass-specular"></div>
+                <div class="glass-content modal-content onboarding-content">
+                    <div class="onboarding-header">
+                        <div class="onboarding-logo">
+                            <span class="logo-icon pulse">🧠</span>
+                            <span class="logo-text">INTELLA</span>
+                        </div>
+                        <h2 id="onboarding-title">Welcome to Your AI Teacher!</h2>
+                        <p id="onboarding-subtitle">Let's personalize your learning journey</p>
+
+                        <!-- Progress Bar -->
+                        <div id="progress-container" class="onboarding-progress-container hidden">
+                            <div class="onboarding-progress-bar">
+                                <div id="onboarding-progress" class="onboarding-progress-fill"></div>
+                            </div>
+                            <div class="progress-steps">
+                                <div class="progress-step active" data-step="1">
+                                    <span class="step-num">1</span>
+                                    <span class="step-label">Country</span>
+                                </div>
+                                <div class="progress-step" data-step="2">
+                                    <span class="step-num">2</span>
+                                    <span class="step-label">Level</span>
+                                </div>
+                                <div class="progress-step" data-step="3">
+                                    <span class="step-num">3</span>
+                                    <span class="step-label">Class</span>
+                                </div>
+                                <div class="progress-step" data-step="4">
+                                    <span class="step-num">4</span>
+                                    <span class="step-label">Stream</span>
+                                </div>
+                                <div class="progress-step" data-step="5">
+                                    <span class="step-num">5</span>
+                                    <span class="step-label">Account</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 0: Welcome - New Student or Login -->
+                    <div class="onboarding-step active" data-step="0">
+                        <div class="step-header">
+                            <span class="step-icon">👋</span>
+                            <h3>Get Started</h3>
+                        </div>
+                        <p class="step-desc">Are you new here or returning?</p>
+                        <div class="welcome-options">
+                            <button id="new-student-btn" class="btn primary welcome-btn">
+                                <span class="btn-icon">🎓</span>
+                                <span>I'm a New Student</span>
+                                <small>Create your profile and start learning</small>
+                            </button>
+                            <button id="returning-student-btn" class="btn secondary welcome-btn">
+                                <span class="btn-icon">🔑</span>
+                                <span>I Have an Account</span>
+                                <small>Login with email & password</small>
+                            </button>
+                        </div>
+
+                        <!-- Login Form (hidden by default) -->
+                        <div id="onboarding-login-form" class="auth-form hidden" style="margin-top: 20px;">
+                            <input type="email" id="onboarding-login-email" placeholder="Email" required>
+                            <input type="password" id="onboarding-login-password" placeholder="Password" required>
+                            <button id="onboarding-login-btn" class="btn primary">Sign In</button>
+                            <p class="auth-switch">
+                                <a href="#" id="forgot-password-link">Forgot Password?</a>
+                            </p>
+                            <p class="auth-switch">
+                                <a href="#" id="back-to-options">← Back to options</a>
+                            </p>
+                        </div>
+
+                        <!-- Forgot Password Form (hidden by default) -->
+                        <div id="forgot-password-form" class="auth-form hidden" style="margin-top: 20px;">
+                            <p class="auth-subtitle">Enter your email to reset password</p>
+                            <input type="email" id="reset-email" placeholder="Email" required>
+                            <button id="send-reset-btn" class="btn primary">Send Reset Link</button>
+                            <p class="auth-switch">
+                                <a href="#" id="back-to-login">← Back to login</a>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Step 1: Country Selection -->
+                    <div class="onboarding-step" data-step="1">
+                        <div class="step-header">
+                            <span class="step-icon">🌍</span>
+                            <h3>Select Your Country</h3>
+                        </div>
+                        <p class="step-desc">Choose your country to get curriculum-aligned content</p>
+                        <div class="search-wrapper">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="country-search" class="search-input"
+                                placeholder="Search countries...">
+                        </div>
+                        <div id="country-grid" class="selection-grid country-grid">
+                            <!-- Countries will be populated by JS -->
+                        </div>
+                        <div class="step-actions">
+                            <button id="skip-onboarding" class="btn secondary">Skip Setup</button>
+                            <button class="btn primary onboarding-next">Continue →</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Education Level Selection -->
+                    <div class="onboarding-step" data-step="2">
+                        <div class="step-header">
+                            <span class="step-icon">📚</span>
+                            <h3>Education Level</h3>
+                        </div>
+                        <p class="step-desc">What level are you studying at?</p>
+                        <div id="level-grid" class="selection-grid level-grid">
+                            <button class="level-btn" data-level="primary">
+                                <span class="level-icon">📒</span>
+                                <span class="level-name">Primary School</span>
+                                <span class="level-desc">Class 1-5</span>
+                            </button>
+                            <button class="level-btn" data-level="middle">
+                                <span class="level-icon">📗</span>
+                                <span class="level-name">Middle School</span>
+                                <span class="level-desc">Class 6-8</span>
+                            </button>
+                            <button class="level-btn" data-level="secondary">
+                                <span class="level-icon">📘</span>
+                                <span class="level-name">Secondary School</span>
+                                <span class="level-desc">Class 9-10 (SSC/O-Level)</span>
+                            </button>
+                            <button class="level-btn" data-level="higher_secondary">
+                                <span class="level-icon">📙</span>
+                                <span class="level-name">Higher Secondary</span>
+                                <span class="level-desc">Class 11-12 (HSC/A-Level)</span>
+                            </button>
+                            <button class="level-btn" data-level="undergraduate">
+                                <span class="level-icon">🎓</span>
+                                <span class="level-name">Undergraduate</span>
+                                <span class="level-desc">Bachelor's Degree (BSc/BA/BBA)</span>
+                            </button>
+                            <button class="level-btn" data-level="postgraduate">
+                                <span class="level-icon">🎓</span>
+                                <span class="level-name">Postgraduate</span>
+                                <span class="level-desc">Master's Degree (MSc/MA/MBA)</span>
+                            </button>
+                        </div>
+                        <div class="step-actions">
+                            <button class="btn secondary onboarding-back">← Back</button>
+                            <button class="btn primary onboarding-next">Continue →</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Grade/Year Selection (for school) OR Department (for university) -->
+                    <div class="onboarding-step" data-step="3">
+                        <div class="step-header">
+                            <span class="step-icon" id="step3-icon">📖</span>
+                            <h3 id="step3-title">Select Your Class</h3>
+                        </div>
+                        <p class="step-desc" id="step3-desc">What class are you studying in?</p>
+
+                        <!-- For School Students -->
+                        <div id="class-grid" class="selection-grid class-selection-grid">
+                            <!-- Classes will be populated based on education level -->
+                        </div>
+
+                        <!-- For University Students (hidden by default) -->
+                        <div id="department-grid" class="selection-grid dept-grid hidden">
+                            <button class="dept-btn" data-dept="engineering">
+                                <span class="dept-icon">⚙️</span>
+                                <span class="dept-name">Engineering</span>
+                            </button>
+                            <button class="dept-btn" data-dept="business">
+                                <span class="dept-icon">💼</span>
+                                <span class="dept-name">Business</span>
+                            </button>
+                            <button class="dept-btn" data-dept="medical">
+                                <span class="dept-icon">⚕️</span>
+                                <span class="dept-name">Medical Sciences</span>
+                            </button>
+                            <button class="dept-btn" data-dept="science">
+                                <span class="dept-icon">🔬</span>
+                                <span class="dept-name">Pure Sciences</span>
+                            </button>
+                            <button class="dept-btn" data-dept="arts">
+                                <span class="dept-icon">📚</span>
+                                <span class="dept-name">Arts & Social Sciences</span>
+                            </button>
+                            <button class="dept-btn" data-dept="law">
+                                <span class="dept-icon">⚖️</span>
+                                <span class="dept-name">Law</span>
+                            </button>
+                        </div>
+
+                        <div class="step-actions">
+                            <button class="btn secondary onboarding-back">← Back</button>
+                            <button class="btn primary onboarding-next">Continue →</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Stream/Program Selection -->
+                    <div class="onboarding-step" data-step="4">
+                        <div class="step-header">
+                            <span class="step-icon" id="step4-icon">🎯</span>
+                            <h3 id="step4-title">Select Your Stream</h3>
+                        </div>
+                        <p class="step-desc" id="step4-desc">Choose your academic stream</p>
+
+                        <!-- For School Streams -->
+                        <div id="stream-grid" class="selection-grid stream-selection-grid">
+                            <button class="stream-btn" data-stream="science">
+                                <span class="stream-icon">🔬</span>
+                                <span class="stream-name">Science</span>
+                            </button>
+                            <button class="stream-btn" data-stream="commerce">
+                                <span class="stream-icon">📊</span>
+                                <span class="stream-name">Commerce</span>
+                            </button>
+                            <button class="stream-btn" data-stream="arts">
+                                <span class="stream-icon">🎨</span>
+                                <span class="stream-name">Arts/Humanities</span>
+                            </button>
+                        </div>
+
+                        <!-- For University Programs (hidden by default) -->
+                        <div id="program-grid" class="selection-grid program-selection-grid hidden">
+                            <!-- Programs will be populated based on department -->
+                        </div>
+
+                        <!-- For University Year Selection -->
+                        <div id="year-grid" class="selection-grid year-selection-grid hidden">
+                            <button class="year-btn" data-year="1">1st Year</button>
+                            <button class="year-btn" data-year="2">2nd Year</button>
+                            <button class="year-btn" data-year="3">3rd Year</button>
+                            <button class="year-btn" data-year="4">4th Year</button>
+                        </div>
+
+                        <div class="step-actions">
+                            <button class="btn secondary onboarding-back">← Back</button>
+                            <button class="btn primary onboarding-next">Continue →</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Create Account -->
+                    <div class="onboarding-step" data-step="5">
+                        <div class="step-header">
+                            <span class="step-icon">🔐</span>
+                            <h3>Create Your Account</h3>
+                        </div>
+                        <p class="step-desc">Save your progress and access from any device</p>
+
+                        <div class="auth-form" id="signup-onboarding-form">
+                            <div class="profile-picture-section">
+                                <div class="profile-picture-preview" id="profile-pic-preview">
+                                    <span>📷</span>
+                                </div>
+                                <button type="button" id="upload-profile-pic-btn" class="btn secondary small">Add Photo
+                                    (Optional)</button>
+                                <input type="file" id="profile-pic-input" accept="image/*" hidden>
+                            </div>
+                            <input type="text" id="signup-fullname" placeholder="Full Name" required>
+                            <input type="email" id="signup-onboarding-email" placeholder="Email" required>
+                            <input type="password" id="signup-onboarding-password"
+                                placeholder="Password (min 6 characters)" required>
+                            <input type="password" id="signup-confirm-password" placeholder="Confirm Password" required>
+                        </div>
+
+                        <div class="step-actions final-step">
+                            <button class="btn secondary onboarding-back">← Back</button>
+                            <button id="complete-onboarding" class="btn primary success-btn">
+                                <span class="btn-icon">🚀</span>
+                                <span>Create Account & Start!</span>
+                            </button>
+                        </div>
+                        <p class="skip-account-text">
+                            <a href="#" id="skip-account-btn">Skip for now (data stored locally)</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Textbook Library Modal -->
+        <div id="library-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="glass-container modal-container library-modal">
+                <div class="glass-filter"></div>
+                <div class="glass-overlay"></div>
+                <div class="glass-specular"></div>
+                <div class="glass-content modal-content">
+                    <div class="modal-header">
+                        <h2>📚 Textbook Library</h2>
+                        <button id="closeLibrary" class="close-btn">✕</button>
+                    </div>
+                    <div class="modal-body library-body">
+                        <!-- Student Info Banner -->
+                        <div class="library-student-info">
+                            <span id="library-student-class">Class 10</span>
+                            <span class="separator">•</span>
+                            <span id="library-student-stream">Science</span>
+                            <span class="separator">•</span>
+                            <span id="library-student-board">NCTB</span>
+                        </div>
+
+                        <!-- Library Tabs -->
+                        <div class="library-tabs">
+                            <button class="library-tab active" data-tab="my-books">📖 My Books</button>
+                            <button class="library-tab" data-tab="all-books">🌐 All Books</button>
+                        </div>
+
+                        <!-- Books Grid -->
+                        <div id="library-books-grid" class="library-books-grid">
+                            <div class="library-loading">
+                                <div class="loading-spinner"></div>
+                                <span>Loading textbooks...</span>
+                            </div>
+                        </div>
+
+                        <!-- Upload Section -->
+                        <div class="library-upload-section">
+                            <p>📤 Missing a book? Upload it to help others!</p>
+                            <label class="upload-book-btn">
+                                <input type="file" id="library-file-input" accept=".pdf" hidden>
+                                <span class="btn-icon">📄</span>
+                                <span>Upload PDF</span>
+                            </label>
+                        </div>
+
+                        <!-- Upload Form (hidden by default) -->
+                        <div id="library-upload-form" class="library-upload-form hidden">
+                            <h3>📝 Book Details</h3>
+                            <div class="upload-form-grid">
+                                <div class="form-group">
+                                    <label>Book Title</label>
+                                    <input type="text" id="upload-book-title" placeholder="e.g., জীববিজ্ঞান">
+                                </div>
+                                <div class="form-group">
+                                    <label>Subject</label>
+                                    <select id="upload-book-subject">
+                                        <option value="">Select Subject</option>
+                                        <option value="bangla">বাংলা (Bangla)</option>
+                                        <option value="english">English</option>
+                                        <option value="mathematics">গণিত (Mathematics)</option>
+                                        <option value="physics">পদার্থবিজ্ঞান (Physics)</option>
+                                        <option value="chemistry">রসায়ন (Chemistry)</option>
+                                        <option value="biology">জীববিজ্ঞান (Biology)</option>
+                                        <option value="ict">ICT</option>
+                                        <option value="accounting">হিসাববিজ্ঞান (Accounting)</option>
+                                        <option value="economics">অর্থনীতি (Economics)</option>
+                                        <option value="history">ইতিহাস (History)</option>
+                                        <option value="geography">ভূগোল (Geography)</option>
+                                        <option value="civics">পৌরনীতি (Civics)</option>
+                                        <option value="religion">ধর্ম (Religion)</option>
+                                        <option value="agriculture">কৃষিশিক্ষা (Agriculture)</option>
+                                        <option value="higher-math">উচ্চতর গণিত (Higher Math)</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Class</label>
+                                    <select id="upload-book-class">
+                                        <option value="">Select Class</option>
+                                        <option value="1">Class 1</option>
+                                        <option value="2">Class 2</option>
+                                        <option value="3">Class 3</option>
+                                        <option value="4">Class 4</option>
+                                        <option value="5">Class 5</option>
+                                        <option value="6">Class 6</option>
+                                        <option value="7">Class 7</option>
+                                        <option value="8">Class 8</option>
+                                        <option value="9">Class 9</option>
+                                        <option value="10">Class 10</option>
+                                        <option value="11">Class 11 (HSC)</option>
+                                        <option value="12">Class 12 (HSC)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Stream (optional)</label>
+                                    <select id="upload-book-stream">
+                                        <option value="">All Streams</option>
+                                        <option value="science">Science</option>
+                                        <option value="commerce">Commerce</option>
+                                        <option value="arts">Arts/Humanities</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="upload-progress hidden" id="upload-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="upload-progress-fill"></div>
+                                </div>
+                                <span id="upload-progress-text">Uploading... 0%</span>
+                            </div>
+                            <div class="upload-form-actions">
+                                <button id="cancel-upload-btn" class="btn secondary">Cancel</button>
+                                <button id="confirm-upload-btn" class="btn primary">
+                                    <span class="btn-icon">📤</span>
+                                    Upload & Process
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chapter Selection Modal -->
+        <div id="chapter-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="glass-container modal-container chapter-modal">
+                <div class="glass-filter"></div>
+                <div class="glass-overlay"></div>
+                <div class="glass-specular"></div>
+                <div class="glass-content modal-content">
+                    <div class="modal-header">
+                        <button id="backToLibrary" class="back-btn">←</button>
+                        <h2 id="chapter-book-title">📖 Book Title</h2>
+                        <button id="closeChapter" class="close-btn">✕</button>
+                    </div>
+                    <div class="modal-body chapter-body">
+                        <div id="chapters-list" class="chapters-list">
+                            <div class="library-loading">
+                                <div class="loading-spinner"></div>
+                                <span>Loading chapters...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Modal -->
+        <div id="quiz-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="glass-container modal-container quiz-modal-container">
+                <div class="glass-filter"></div>
+                <div class="glass-overlay"></div>
+                <div class="glass-specular"></div>
+                <div class="glass-content modal-content">
+                    <!-- Quiz Setup Screen -->
+                    <div id="quiz-setup" class="quiz-screen">
+                        <div class="quiz-header">
+                            <h2>📝 Quiz Time!</h2>
+                            <button id="close-quiz" class="close-btn">✕</button>
+                        </div>
+                        <div class="quiz-setup-body">
+                            <div class="quiz-subject-display">
+                                <span class="quiz-icon">🎯</span>
+                                <h3 id="quiz-subject-title">Mathematics</h3>
+                                <p id="quiz-topic-title">Algebra Basics</p>
+                            </div>
+                            <div class="quiz-count-selector">
+                                <label>How many questions?</label>
+                                <div class="count-options">
+                                    <button class="count-btn" data-count="5">5</button>
+                                    <button class="count-btn active" data-count="10">10</button>
+                                    <button class="count-btn" data-count="15">15</button>
+                                    <button class="count-btn" data-count="20">20</button>
+                                </div>
+                            </div>
+                            <div class="quiz-difficulty-selector">
+                                <label>Difficulty Level</label>
+                                <div class="difficulty-options">
+                                    <button class="difficulty-btn" data-difficulty="easy">
+                                        <span>😊</span> Easy
+                                    </button>
+                                    <button class="difficulty-btn active" data-difficulty="medium">
+                                        <span>🤔</span> Medium
+                                    </button>
+                                    <button class="difficulty-btn" data-difficulty="hard">
+                                        <span>🔥</span> Hard
+                                    </button>
+                                </div>
+                            </div>
+                            <button id="start-quiz-btn" class="btn primary quiz-start-btn">
+                                <span>🚀</span> Start Quiz
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Loading Screen -->
+                    <div id="quiz-loading" class="quiz-screen hidden">
+                        <div class="quiz-loading-content">
+                            <div class="quiz-loader"></div>
+                            <h3>Generating Questions...</h3>
+                            <p>Your AI teacher is preparing the quiz</p>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Questions Screen -->
+                    <div id="quiz-questions" class="quiz-screen hidden">
+                        <div class="quiz-header">
+                            <div class="quiz-progress-info">
+                                <span id="quiz-current-num">1</span>/<span id="quiz-total-num">10</span>
+                            </div>
+                            <div class="quiz-score-display">
+                                <span>🎯</span>
+                                <span id="quiz-score">0</span>
+                            </div>
+                            <button id="close-quiz-questions" class="close-btn">✕</button>
+                        </div>
+                        <div class="quiz-progress-bar">
+                            <div id="quiz-progress-fill" class="quiz-progress-fill"></div>
+                        </div>
+
+                        <!-- Questions Container with Scroll -->
+                        <div class="quiz-questions-wrapper">
+                            <div id="quiz-questions-container" class="quiz-questions-container">
+                                <!-- Questions will be rendered here -->
+                            </div>
+                        </div>
+
+                        <!-- Navigation Dots -->
+                        <div id="quiz-nav-dots" class="quiz-nav-dots">
+                            <!-- Dots will be rendered here -->
+                        </div>
+                    </div>
+
+                    <!-- Quiz Results Screen -->
+                    <div id="quiz-results" class="quiz-screen hidden">
+                        <div class="quiz-header">
+                            <h2>📊 Quiz Results</h2>
+                            <button id="close-quiz-results" class="close-btn">✕</button>
+                        </div>
+                        <div class="quiz-results-body">
+                            <div class="results-score-circle">
+                                <svg viewBox="0 0 100 100">
+                                    <circle class="score-bg" cx="50" cy="50" r="45" />
+                                    <circle id="score-circle" class="score-fill" cx="50" cy="50" r="45" />
+                                </svg>
+                                <div class="score-text">
+                                    <span id="results-percentage">0%</span>
+                                    <span id="results-grade">F</span>
+                                </div>
+                            </div>
+                            <div class="results-stats">
+                                <div class="stat-item correct">
+                                    <span class="stat-icon">✅</span>
+                                    <span id="results-correct">0</span>
+                                    <span class="stat-label">Correct</span>
+                                </div>
+                                <div class="stat-item wrong">
+                                    <span class="stat-icon">❌</span>
+                                    <span id="results-wrong">0</span>
+                                    <span class="stat-label">Wrong</span>
+                                </div>
+                                <div class="stat-item time">
+                                    <span class="stat-icon">⏱️</span>
+                                    <span id="results-time">0:00</span>
+                                    <span class="stat-label">Time</span>
+                                </div>
+                            </div>
+                            <p id="results-message" class="results-message">Great job!</p>
+                            <div class="results-actions">
+                                <button id="review-quiz-btn" class="btn secondary">
+                                    <span>📋</span> Review Answers
+                                </button>
+                                <button id="retry-quiz-btn" class="btn primary">
+                                    <span>🔄</span> Try Again
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Review Screen -->
+                    <div id="quiz-review" class="quiz-screen hidden">
+                        <div class="quiz-header">
+                            <h2>📋 Review Answers</h2>
+                            <button id="close-quiz-review" class="close-btn">✕</button>
+                        </div>
+                        <div id="quiz-review-container" class="quiz-review-container">
+                            <!-- Review items will be rendered here -->
+                        </div>
+                        <div class="review-actions">
+                            <button id="back-to-results-btn" class="btn primary">
+                                <span>←</span> Back to Results
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="glass-container modal-container settings-modal">
+                <div class="glass-filter"></div>
+                <div class="glass-overlay"></div>
+                <div class="glass-specular"></div>
+                <div class="glass-content modal-content">
+                    <div class="modal-header">
+                        <h2>⚙️ Settings</h2>
+                        <button id="closeSettings" class="close-btn">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- API Settings -->
+                        <div class="settings-section">
+                            <h3>🔑 API Configuration</h3>
+                            <div class="setting-item">
+                                <label for="gemini-api-key">Gemini API Key:</label>
+                                <input type="password" id="gemini-api-key" placeholder="Enter your Gemini API key">
+                            </div>
+                        </div>
+
+                        <!-- Live Mode Settings -->
+                        <div class="settings-section">
+                            <h3>🎙️ Live Conversation Mode</h3>
+                            <div class="setting-item toggle-setting">
+                                <label for="live-mode-toggle">
+                                    <span>Enable Live Mode</span>
+                                    <small>Real-time voice conversation (auto-matches teacher)</small>
+                                </label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="live-mode-toggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div id="live-mode-options" class="live-mode-options hidden">
+                                <p style="color: #888; font-size: 0.85rem; margin: 0;">
+                                    💡 Live voice auto-matches your teacher:<br>
+                                    • Sir → Charon (Male voice)<br>
+                                    • Ma'am → Aoede (Female voice)<br>
+                                    <em>Responds in any language you speak!</em>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Voice Settings (Edge TTS - 100+ Countries) -->
+                        <div class="settings-section">
+                            <h3>🎙️ Voice Settings (Free HD Neural Voices)</h3>
+
+                            <!-- Speech Input Language (Web Speech API) -->
+                            <div class="setting-item">
+                                <label for="speech-input-lang">🎤 Speech Input (Your voice):</label>
+                                <select id="speech-input-lang">
+                                    <optgroup label="🇧🇩 South Asian">
+                                        <option value="bn-BD" selected>Bengali (Bangladesh)</option>
+                                        <option value="bn-IN">Bengali (India)</option>
+                                        <option value="hi-IN">Hindi</option>
+                                        <option value="ta-IN">Tamil</option>
+                                        <option value="te-IN">Telugu</option>
+                                        <option value="mr-IN">Marathi</option>
+                                        <option value="gu-IN">Gujarati</option>
+                                        <option value="kn-IN">Kannada</option>
+                                        <option value="ml-IN">Malayalam</option>
+                                        <option value="ne-NP">Nepali</option>
+                                        <option value="si-LK">Sinhala</option>
+                                        <option value="ur-PK">Urdu (Pakistan)</option>
+                                    </optgroup>
+                                    <optgroup label="🇺🇸 English">
+                                        <option value="en-US">English (US)</option>
+                                        <option value="en-GB">English (UK)</option>
+                                        <option value="en-AU">English (Australia)</option>
+                                        <option value="en-IN">English (India)</option>
+                                    </optgroup>
+                                    <optgroup label="🇪🇺 European">
+                                        <option value="fr-FR">French</option>
+                                        <option value="de-DE">German</option>
+                                        <option value="es-ES">Spanish</option>
+                                        <option value="it-IT">Italian</option>
+                                        <option value="pt-BR">Portuguese (Brazil)</option>
+                                        <option value="ru-RU">Russian</option>
+                                    </optgroup>
+                                    <optgroup label="🇨🇳 East Asian">
+                                        <option value="zh-CN">Chinese (Mandarin)</option>
+                                        <option value="ja-JP">Japanese</option>
+                                        <option value="ko-KR">Korean</option>
+                                    </optgroup>
+                                    <optgroup label="🇸🇦 Middle East">
+                                        <option value="ar-SA">Arabic</option>
+                                        <option value="he-IL">Hebrew</option>
+                                        <option value="fa-IR">Persian</option>
+                                    </optgroup>
+                                </select>
+                                <small style="color: #888; display: block; margin-top: 4px;">Language for your
+                                    microphone input</small>
+                            </div>
+
+                            <!-- TTS Voice Selection (Edge TTS Output) -->
+                            <div class="setting-item">
+                                <label for="voice-language">🔊 Teacher Voice (TTS Output):</label>
+                                <select id="voice-language">
+                                    <optgroup label="🇧🇩 Bengali Voices">
+                                        <option value="bn-BD-NabanitaNeural" selected>bn-BD-NabanitaNeural (Female)
+                                        </option>
+                                        <option value="bn-BD-PradeepNeural">bn-BD-PradeepNeural (Male)</option>
+                                        <option value="bn-IN-TanishaaNeural">bn-IN-TanishaaNeural (Female, India)
+                                        </option>
+                                        <option value="bn-IN-BashkarNeural">bn-IN-BashkarNeural (Male, India)</option>
+                                    </optgroup>
+                                    <optgroup label="🇮🇳 Hindi Voices">
+                                        <option value="hi-IN-SwaraNeural">hi-IN-SwaraNeural (Female)</option>
+                                        <option value="hi-IN-MadhurNeural">hi-IN-MadhurNeural (Male)</option>
+                                    </optgroup>
+                                    <optgroup label="🇺🇸 English (US) HD">
+                                        <option value="en-US-AvaMultilingualNeural">en-US-AvaMultilingualNeural (Female
+                                            HD)</option>
+                                        <option value="en-US-AndrewMultilingualNeural">en-US-AndrewMultilingualNeural
+                                            (Male HD)</option>
+                                        <option value="en-US-JennyNeural">en-US-JennyNeural (Female)</option>
+                                        <option value="en-US-GuyNeural">en-US-GuyNeural (Male)</option>
+                                        <option value="en-US-AriaNeural">en-US-AriaNeural (Female)</option>
+                                        <option value="en-US-DavisNeural">en-US-DavisNeural (Male)</option>
+                                    </optgroup>
+                                    <optgroup label="🇬🇧 English (UK)">
+                                        <option value="en-GB-SoniaNeural">en-GB-SoniaNeural (Female)</option>
+                                        <option value="en-GB-RyanNeural">en-GB-RyanNeural (Male)</option>
+                                        <option value="en-GB-LibbyNeural">en-GB-LibbyNeural (Female)</option>
+                                    </optgroup>
+                                    <optgroup label="🇮🇳 English (India)">
+                                        <option value="en-IN-NeerjaExpressiveNeural">en-IN-NeerjaExpressiveNeural
+                                            (Female)</option>
+                                        <option value="en-IN-PrabhatNeural">en-IN-PrabhatNeural (Male)</option>
+                                    </optgroup>
+                                    <optgroup label="🇫🇷 French">
+                                        <option value="fr-FR-VivienneMultilingualNeural">
+                                            fr-FR-VivienneMultilingualNeural (Female HD)</option>
+                                        <option value="fr-FR-RemyMultilingualNeural">fr-FR-RemyMultilingualNeural (Male
+                                            HD)</option>
+                                        <option value="fr-FR-DeniseNeural">fr-FR-DeniseNeural (Female)</option>
+                                    </optgroup>
+                                    <optgroup label="🇩🇪 German">
+                                        <option value="de-DE-SeraphinaMultilingualNeural">
+                                            de-DE-SeraphinaMultilingualNeural (Female HD)</option>
+                                        <option value="de-DE-FlorianMultilingualNeural">de-DE-FlorianMultilingualNeural
+                                            (Male HD)</option>
+                                        <option value="de-DE-KatjaNeural">de-DE-KatjaNeural (Female)</option>
+                                    </optgroup>
+                                    <optgroup label="🇪🇸 Spanish">
+                                        <option value="es-ES-ElviraNeural">es-ES-ElviraNeural (Female, Spain)</option>
+                                        <option value="es-ES-AlvaroNeural">es-ES-AlvaroNeural (Male, Spain)</option>
+                                        <option value="es-MX-DaliaNeural">es-MX-DaliaNeural (Female, Mexico)</option>
+                                        <option value="es-MX-JorgeNeural">es-MX-JorgeNeural (Male, Mexico)</option>
+                                    </optgroup>
+                                    <optgroup label="🇮🇹 Italian">
+                                        <option value="it-IT-ElsaNeural">it-IT-ElsaNeural (Female)</option>
+                                        <option value="it-IT-GiuseppeMultilingualNeural">
+                                            it-IT-GiuseppeMultilingualNeural (Male HD)</option>
+                                    </optgroup>
+                                    <optgroup label="🇧🇷 Portuguese">
+                                        <option value="pt-BR-ThalitaMultilingualNeural">pt-BR-ThalitaMultilingualNeural
+                                            (Female HD)</option>
+                                        <option value="pt-BR-AntonioNeural">pt-BR-AntonioNeural (Male)</option>
+                                        <option value="pt-PT-RaquelNeural">pt-PT-RaquelNeural (Female, Portugal)
+                                        </option>
+                                    </optgroup>
+                                    <optgroup label="🇨🇳 Chinese">
+                                        <option value="zh-CN-XiaoxiaoNeural">zh-CN-XiaoxiaoNeural (Female)</option>
+                                        <option value="zh-CN-YunyangNeural">zh-CN-YunyangNeural (Male)</option>
+                                        <option value="zh-TW-HsiaoChenNeural">zh-TW-HsiaoChenNeural (Female, Taiwan)
+                                        </option>
+                                    </optgroup>
+                                    <optgroup label="🇯🇵 Japanese">
+                                        <option value="ja-JP-NanamiNeural">ja-JP-NanamiNeural (Female)</option>
+                                        <option value="ja-JP-KeitaNeural">ja-JP-KeitaNeural (Male)</option>
+                                    </optgroup>
+                                    <optgroup label="🇰🇷 Korean">
+                                        <option value="ko-KR-SunHiNeural">ko-KR-SunHiNeural (Female)</option>
+                                        <option value="ko-KR-HyunsuMultilingualNeural">ko-KR-HyunsuMultilingualNeural
+                                            (Male HD)</option>
+                                    </optgroup>
+                                    <optgroup label="🇷🇺 Russian">
+                                        <option value="ru-RU-SvetlanaNeural">ru-RU-SvetlanaNeural (Female)</option>
+                                        <option value="ru-RU-DmitryNeural">ru-RU-DmitryNeural (Male)</option>
+                                    </optgroup>
+                                    <optgroup label="🇸🇦 Arabic">
+                                        <option value="ar-SA-ZariyahNeural">ar-SA-ZariyahNeural (Female, Saudi)</option>
+                                        <option value="ar-SA-HamedNeural">ar-SA-HamedNeural (Male, Saudi)</option>
+                                        <option value="ar-EG-SalmaNeural">ar-EG-SalmaNeural (Female, Egypt)</option>
+                                    </optgroup>
+                                    <optgroup label="🇹🇭 Southeast Asian">
+                                        <option value="vi-VN-HoaiMyNeural">vi-VN-HoaiMyNeural (Female, Vietnamese)
+                                        </option>
+                                        <option value="th-TH-PremwadeeNeural">th-TH-PremwadeeNeural (Female, Thai)
+                                        </option>
+                                        <option value="id-ID-GadisNeural">id-ID-GadisNeural (Female, Indonesian)
+                                        </option>
+                                        <option value="ms-MY-YasminNeural">ms-MY-YasminNeural (Female, Malay)</option>
+                                    </optgroup>
+                                    <optgroup label="🌍 Other Languages">
+                                        <option value="ta-IN-PallaviNeural">ta-IN-PallaviNeural (Tamil Female)</option>
+                                        <option value="te-IN-ShrutiNeural">te-IN-ShrutiNeural (Telugu Female)</option>
+                                        <option value="mr-IN-AarohiNeural">mr-IN-AarohiNeural (Marathi Female)</option>
+                                        <option value="gu-IN-DhwaniNeural">gu-IN-DhwaniNeural (Gujarati Female)</option>
+                                        <option value="ur-PK-UzmaNeural">ur-PK-UzmaNeural (Urdu Female)</option>
+                                        <option value="ne-NP-HemkalaNeural">ne-NP-HemkalaNeural (Nepali Female)</option>
+                                        <option value="sw-KE-ZuriNeural">sw-KE-ZuriNeural (Swahili Female)</option>
+                                    </optgroup>
+                                </select>
+                                <small style="color: #888; display: block; margin-top: 4px;">Voice for teacher's
+                                    response</small>
+                            </div>
+
+                            <div class="setting-item">
+                                <label for="voice-emotion">Emotion (English only):</label>
+                                <select id="voice-emotion">
+                                    <option value="friendly" selected>Friendly</option>
+                                    <option value="happy">Happy/Cheerful</option>
+                                    <option value="excited">Excited</option>
+                                    <option value="sad">Sad</option>
+                                    <option value="hopeful">Hopeful</option>
+                                    <option value="neutral">Neutral</option>
+                                    <option value="angry">Angry</option>
+                                    <option value="whispering">Whispering</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label for="speech-rate">Speech Rate:</label>
+                                <input type="range" id="speech-rate" min="0.5" max="1.5" step="0.1" value="1.0">
+                                <span id="rate-value">1.0x</span>
+                            </div>
+                        </div>
+
+                        <!-- Teacher Personality -->
+                        <div class="settings-section">
+                            <h3>👨‍🏫 Teacher Settings</h3>
+                            <div class="setting-item">
+                                <label>Choose Teacher:</label>
+                                <div class="teacher-selector">
+                                    <button class="teacher-option selected" data-teacher="male"
+                                        data-url="./avatar/69435286403c000063429870.glb">
+                                        <div class="teacher-avatar">👨‍🏫</div>
+                                        <span>Sir (Male)</span>
+                                    </button>
+                                    <button class="teacher-option" data-teacher="female"
+                                        data-url="./avatar/Teacher_Female.glb">
+                                        <div class="teacher-avatar">👩‍🏫</div>
+                                        <span>Ma'am (Female)</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="setting-item">
+                                <label for="teacher-style">Teaching Style:</label>
+                                <select id="teacher-style">
+                                    <option value="friendly">Friendly & Encouraging</option>
+                                    <option value="formal">Formal & Professional</option>
+                                    <option value="socratic">Socratic (Question-based)</option>
+                                    <option value="storyteller">Storyteller</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label for="subject-focus">Subject Focus:</label>
+                                <select id="subject-focus">
+                                    <option value="general">General (All Subjects)</option>
+                                    <option value="math">Mathematics</option>
+                                    <option value="science">Science</option>
+                                    <option value="history">History</option>
+                                    <option value="language">Language Arts</option>
+                                    <option value="programming">Programming</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Profile Settings -->
+                        <div class="settings-section">
+                            <h3>👤 Profile</h3>
+                            <button id="reset-profile" class="btn secondary">Reset Profile & Onboarding</button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="saveSettings" class="btn primary">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script type="module" src="firebase-config.js"></script>
+
+    <!-- Edge TTS Helper (Loaded dynamically by app.js) -->
+    <script src="./lib/edge-tts-helper.js"></script>
+
+    <!-- Main Application Script -->
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>
